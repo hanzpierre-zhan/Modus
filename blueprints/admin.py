@@ -969,7 +969,9 @@ def salud_panel():
     """Panel de salud de la plataforma (solo zeno/suport)."""
     if session.get('rol') not in ('zeno', 'suport'):
         return redirect(url_for('pages.index'))
-    return render_template('resources.html')
+    from services.utilidades import get_menu_proyectos
+    return render_template('resources.html', proyectos_list=get_menu_proyectos(
+        session.get('user_id'), session.get('rol')))
 
 
 @bp.route('/api/salud')

@@ -3,6 +3,7 @@ import json
 import os
 import time
 import threading
+import shutil
 import urllib.request
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -30,6 +31,73 @@ def _error(component, exc):
     current_app.logger.warning('Resources %s: %s', component, type(exc).__name__)
     return {'status': 'error', 'error': 'No se pudo consultar. Revisa permisos, conexión y logs del servidor.',
             'error_type': type(exc).__name__}
+
+
+def _read(path):
+    try:
+        with open(path) as handle:
+            return handle.read().strip()
+    except OSError:
+        return None
+
+
+def _memory_limit():
+    for path in ('/sys/fs/cgroup/memory.max', '/sys/fs/cgroup/memory/memory.limit_in_bytes'):
+        try:
+            value = int(_read(path))
+            if 0 < value < 2**60:
+                return value
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+def _cpu_counter():
+    raw = _read('/sys/fs/cgroup/cpu.stat')
+    if raw:
+        stats = dict(line.split() for line in raw.splitlines())
+        if 'usage_usec' in stats:
+            return int(stats['usage_usec']) / 1_000_000
+    for path in ('/sys/fs/cgroup/cpuacct/cpuacct.usage', '/sys/fs/cgroup/cpu,cpuacct/cpuacct.usage'):
+        raw = _read(path)
+        if raw is not None:
+            return int(raw) / 1_000_000_000
+    return None
+
+
+def _cpu():
+    try:
+        cores = None
+        quota = _read('/sys/fs/cgroup/cpu.max')
+        if quota:
+            maximum, period = quota.split()
+            if maximum != 'max' and int(maximum) > 0 and int(period) > 0:
+                cores = int(maximum) / int(period)
+        else:
+            for prefix in ('/sys/fs/cgroup/cpu', '/sys/fs/cgroup/cpu,cpuacct'):
+                maximum, period = _read(prefix + '/cpu.cfs_quota_us'), _read(prefix + '/cpu.cfs_period_us')
+                if maximum and period and int(maximum) > 0 and int(period) > 0:
+                    cores = int(maximum) / int(period)
+                    break
+        usage = _cpu_counter()
+        if usage is None:
+            return {'pct_used': None, 'note': 'El entorno no expone contadores CPU del contenedor.'}
+        now = time.monotonic()
+        previous = current_app.extensions.get('resources_cpu_sample')
+        if previous is None:
+            previous = (now, usage)
+            time.sleep(0.2)
+            usage, now = _cpu_counter(), time.monotonic()
+        current_app.extensions['resources_cpu_sample'] = (now, usage)
+        elapsed = now - previous[0]
+        used_cores = max(0, usage - previous[1]) / elapsed if elapsed > 0 else 0
+        return {'pct_used': round(used_cores / cores * 100, 1) if cores else None,
+                'used_cores': round(used_cores, 3), 'limit_cores': cores,
+                'sample_seconds': round(elapsed, 2), 'scope': 'Contenedor (cgroup)',
+                'note': 'Promedio entre lecturas; porcentaje de la cuota CPU del contenedor.' if cores else
+                        'Uso medido en núcleos; el contenedor no expone una cuota CPU finita.'}
+    except (ValueError, TypeError, ZeroDivisionError):
+        return {'pct_used': None, 'note': 'No se pudo interpretar la medición CPU.'}
 
 
 def _render():
@@ -71,6 +139,19 @@ def _render():
     result['memory'] = {'size_bytes': memory, 'scope': scope}
     if memory is not None:
         _capacity(result['memory'], 'RESOURCES_RENDER_MEMORY_MB')
+        detected_limit = _memory_limit() if scope == 'Contenedor (cgroup)' else None
+        if not result['memory']['limit_bytes'] and detected_limit:
+            result['memory'].update(limit_bytes=detected_limit,
+                pct_used=round(memory / detected_limit * 100, 1), limit_source='Límite del contenedor')
+        elif result['memory']['limit_bytes']:
+            result['memory']['limit_source'] = 'Presupuesto configurado'
+    result['cpu'] = _cpu()
+    try:
+        disk = shutil.disk_usage(current_app.root_path)
+        result['disk'] = {'size_bytes': disk.used, 'free_bytes': disk.free, 'total_bytes': disk.total,
+                          'scope': 'Sistema de archivos visible; puede ser compartido con el host'}
+    except OSError:
+        result['disk'] = {'size_bytes': None}
     return result
 
 
@@ -153,13 +234,6 @@ def snapshot():
         data = {'timestamp': datetime.now(timezone.utc).isoformat(), 'cached': False,
                 'render': _render(), 'neon': _neon(), 'b2': _b2(),
                 'commit': (os.environ.get('RENDER_GIT_COMMIT') or 'No disponible')[:40]}
-        try:
-            from models import Usuario, Proyecto, NucleusData, Cotizacion
-            data['app'] = {'status': 'ok', 'usuarios': Usuario.query.count(), 'proyectos': Proyecto.query.count(),
-                           'cotizaciones': Cotizacion.query.count(), 'registros': NucleusData.query.count()}
-        except Exception as exc:
-            db.session.rollback()
-            data['app'] = _error('app', exc)
         data['duration_ms'] = round((time.monotonic() - started) * 1000, 1)
         state.update(data=data, at=time.monotonic())
         return data

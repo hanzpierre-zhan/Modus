@@ -8,6 +8,12 @@ def test_resources_page_loads_assets(auth_client):
     assert b'css/resources.css' in response.data
     assert b'js/resources.js' in response.data
     assert b'Exportar reporte' in response.data
+    assert b'render-cpu' in response.data
+    assert b'CPU utilizada' in response.data
+    assert b'flm-resource-menu' not in response.data
+    assert b'APPLICATION / INVENTARIO' not in response.data
+    assert b'Monitor externo' not in response.data
+    assert b'FLM - INTEGRATEL' in response.data
 
 
 def test_resources_requires_admin_role(auth_client):
@@ -25,8 +31,7 @@ def test_resources_sqlite_is_not_reported_as_neon(auth_client, app, monkeypatch)
     response = auth_client.get('/api/salud')
     assert response.status_code == 200
     assert response.json['neon']['status'] == 'unavailable'
-    assert response.json['app']['status'] == 'ok'
-    assert isinstance(response.json['app']['registros'], int)
+    assert 'app' not in response.json
     assert response.headers['Cache-Control'] == 'no-store'
     assert auth_client.get('/api/salud').json['cached'] is True
 
@@ -115,3 +120,24 @@ def test_provider_error_does_not_leak_exception_details(app, monkeypatch):
     assert result['status'] == 'error'
     assert result['error_type'] == 'ValueError'
     assert 'secret-value' not in str(result)
+
+
+def test_cpu_uses_container_quota_and_elapsed_usage(app, monkeypatch):
+    from services import resources
+    monkeypatch.setattr(resources, '_read', lambda path: '50000 100000' if path.endswith('cpu.max') else None)
+    monkeypatch.setattr(resources, '_cpu_counter', lambda: 10.1)
+    monkeypatch.setattr(resources.time, 'monotonic', lambda: 101)
+    with app.app_context():
+        monkeypatch.setitem(app.extensions, 'resources_cpu_sample', (100, 10))
+        result = resources._cpu()
+    assert result['pct_used'] == 20
+    assert result['limit_cores'] == 0.5
+    assert result['sample_seconds'] == 1
+
+
+def test_memory_limit_ignores_unlimited_values(monkeypatch):
+    from services import resources
+    monkeypatch.setattr(resources, '_read', lambda path: 'max' if path.endswith('memory.max') else str(2**63))
+    assert resources._memory_limit() is None
+    monkeypatch.setattr(resources, '_read', lambda path: str(512*1024**2))
+    assert resources._memory_limit() == 512*1024**2

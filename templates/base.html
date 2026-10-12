@@ -113,7 +113,7 @@
         <div class="app-main" data-flm-resource="{{ flm_resource_context.flm_nombre if flm_resource_context and flm_resource_context.recurso in ['personal','material'] else '' }}" data-proyecto-id="{{ session.get('current_proyecto_id', '') }}" data-flm-origin="{{ flm_resource_context.flm_id if flm_resource_context else (session.get('current_proyecto_id') if session.get('current_proyecto_nombre') in ['FLM - ENTEL','FLM - INTEGRATEL','FLM - CLARO'] else '') }}">
             <!-- Main Content Grid -->
             <main class="excel-main">
-                {% if request.path != '/' %}{% include '_flm_recursos.html' %}{% endif %}
+                {% if request.path not in ['/', '/salud'] %}{% include '_flm_recursos.html' %}{% endif %}
                 {% block content %}{% endblock %}
             </main>
 
