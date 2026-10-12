@@ -1,0 +1,20 @@
+{
+  "fuente": "C:/Mega/Proyect/Nucleus/nucleus.db",
+  "operador": "INTEGRATEL",
+  "registros_conservados": {
+    "Rendicion": 53,
+    "Cotizaciones": 1,
+    "FLM - INTEGRATEL": 1
+  },
+  "sin_asignacion_excluidos": {
+    "Site Name": 5485,
+    "Generadores": 28,
+    "Combustible": 152,
+    "SITE": 5583
+  },
+  "archivos_copiados": 2,
+  "referencias_sin_archivo_local": 0,
+  "usuarios_conservados": 1,
+  "tokens_cloud_copiados": false,
+  "avisos_historicos_omitidos": 102
+}

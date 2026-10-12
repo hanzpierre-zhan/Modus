@@ -1,0 +1,61 @@
+/* Modus: superficies neutras, controles contenidos y estados legibles. */
+body.theme-vercel {
+  --ios-bg:#fff;--ios-card-bg:#fff;--ios-fill:#f4f4f4;--ios-label:#212121;
+  --ios-secondary:#616161;--ios-gray-1:#707070;--ios-gray-2:#999;
+  --ios-hairline:#dedede;--ios-accent:#212121;--ios-accent-dark:#111;
+  --ios-accent-rgb:33,33,33;--ios-blue:#212121;--ios-blue-dark:#111;
+  --ios-blue-light:#ebebeb;--ios-teal:#212121;--ios-teal-bg:#f0f0f0;
+  --excel-bg:#fff;--excel-border:#e2e2e2;--excel-cell-border:#ededed;
+  --excel-text:#212121;--excel-selection:#ededed;--tabulator-hover:#f7f7f7;
+  --ios-sidebar-bg:#f9f9f9;--ios-bottombar-bg:#fff;
+  --shadow-soft:0 4px 18px #00000008;--shadow-card:0 8px 30px #0000000d;
+  --radius:10px;--radius-lg:16px;
+  background:var(--ios-bg)!important;color:var(--ios-label)!important;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+body.theme-vercel.dark-mode {
+  --ios-bg:#212121;--ios-card-bg:#282828;--ios-fill:#303030;--ios-label:#ececec;
+  --ios-secondary:#b4b4b4;--ios-gray-1:#a1a1a1;--ios-gray-2:#777;
+  --ios-hairline:#444;--ios-accent:#ececec;--ios-accent-dark:#fff;
+  --ios-accent-rgb:236,236,236;--ios-blue:#ececec;--ios-blue-dark:#fff;
+  --ios-blue-light:#383838;--ios-teal:#ececec;--ios-teal-bg:#383838;
+  --excel-bg:#212121;--excel-border:#3b3b3b;--excel-cell-border:#303030;
+  --excel-text:#ececec;--excel-selection:#3b3b3b;--tabulator-hover:#2b2b2b;
+  --ios-sidebar-bg:#171717;--ios-bottombar-bg:#212121;
+  --shadow-soft:0 4px 18px #00000020;--shadow-card:0 8px 30px #00000040;
+  background:var(--ios-bg)!important;color:var(--ios-label)!important;
+}
+body.theme-vercel .app-sidebar{background:var(--ios-sidebar-bg)!important;border-right:1px solid var(--excel-border)!important;backdrop-filter:none!important}
+body.theme-vercel .sidebar-logo{padding:22px 18px!important;border-bottom:0!important}
+body.theme-vercel .sidebar-logo span{font-size:16px!important;letter-spacing:.08em!important}
+body.theme-vercel .sidebar-link{border-radius:8px!important;color:var(--ios-label)!important;font-size:13px!important;font-weight:450!important;min-height:36px;box-shadow:none!important}
+body.theme-vercel .sidebar-link:hover,body.theme-vercel .sidebar-link.active{background:var(--ios-blue-light)!important;color:var(--ios-label)!important;box-shadow:none!important}
+body.theme-vercel .app-sidebar .sidebar-nav .sidebar-link.active,
+body.theme-vercel .app-sidebar .sidebar-nav .sidebar-link.active *{background:var(--ios-blue-light)!important;color:var(--ios-label)!important;box-shadow:none!important}
+body.theme-vercel .app-sidebar .sidebar-link-text{text-transform:none!important;letter-spacing:0!important;font-size:13px!important}
+body.theme-vercel .sidebar-section-label{color:var(--ios-gray-1)!important;font-size:11px!important;letter-spacing:.04em!important}
+body.theme-vercel .btn-action,body.theme-vercel .wo-btn-primary,body.theme-vercel .up-btn-create{background:var(--ios-label)!important;color:var(--ios-bg)!important;border:1px solid var(--ios-label)!important;border-radius:8px!important;box-shadow:none!important;font-weight:550!important}
+body.theme-vercel .btn-action *,body.theme-vercel .wo-btn-primary *,body.theme-vercel .up-btn-create *{color:var(--ios-bg)!important}
+body.theme-vercel .tabulator-page.active{background:var(--ios-label)!important;color:var(--ios-bg)!important;border-color:var(--ios-label)!important;box-shadow:none!important}
+body.theme-vercel button{transition:background .12s,border-color .12s!important}
+body.theme-vercel button:focus-visible,body.theme-vercel input:focus-visible,body.theme-vercel select:focus-visible,body.theme-vercel textarea:focus-visible{outline:2px solid var(--ios-label)!important;outline-offset:3px}
+body.theme-vercel input,body.theme-vercel select,body.theme-vercel textarea{background:var(--ios-fill)!important;color:var(--ios-label)!important;border-color:var(--ios-hairline)!important;border-radius:8px!important;box-shadow:none!important}
+body.theme-vercel .tabulator,body.theme-vercel .tabulator-row{background:var(--excel-bg)!important;color:var(--excel-text)!important}
+body.theme-vercel .tabulator .tabulator-header,body.theme-vercel .tabulator-col{background:var(--ios-fill)!important;color:var(--ios-secondary)!important}
+body.theme-vercel .tabulator-cell{border-right:1px solid var(--excel-cell-border)!important}
+body.theme-vercel .tabulator-row:hover{background:var(--tabulator-hover)!important}
+body.theme-vercel .tabulator-cell a{color:var(--ios-label)!important;text-underline-offset:3px}
+body.theme-vercel .mar-modal,body.theme-vercel .rend-photo-dialog,body.theme-vercel .nucleus-dialog{background:var(--ios-card-bg)!important;border:1px solid var(--ios-hairline)!important;border-radius:16px!important;box-shadow:var(--shadow-card)!important}
+body.theme-vercel .mar-modal.wo-modal{width:min(1100px,calc(100vw - 32px))!important;min-width:0!important}
+body.theme-vercel .wo-summary,body.theme-vercel .wo-section-title,body.theme-vercel .wo-tabs,body.theme-vercel .ribbon{background:var(--ios-fill)!important;border-color:var(--ios-hairline)!important;box-shadow:none!important}
+body.theme-vercel .wo-tab{border-radius:7px!important;color:var(--ios-secondary)!important}
+body.theme-vercel .wo-tab.active{background:var(--ios-card-bg)!important;color:var(--ios-label)!important;box-shadow:0 1px 3px #00000012!important}
+body.theme-vercel .cot-wo-sustento-tabs button{background:var(--ios-fill)!important;color:var(--ios-secondary)!important;border:1px solid var(--ios-hairline)!important;border-radius:8px!important;padding:8px 12px!important}
+body.theme-vercel .cot-wo-sustento-tabs button[aria-pressed=true]{background:var(--ios-label)!important;color:var(--ios-bg)!important;border-color:var(--ios-label)!important}
+body.theme-vercel .evidencia-slot{background:var(--ios-bg)!important;border:1px dashed var(--ios-hairline)!important;border-radius:10px!important}
+body.theme-vercel ::-webkit-scrollbar-thumb{background:var(--ios-gray-2)!important}
+/* El acceso utiliza las mismas superficies que la aplicación. */
+body:not(.theme-vercel){--bg:#212121;--surface:#282828;--surface-2:#303030;--border:#444;--border-strong:#666;--text:#ececec;--text-dim:#b4b4b4;--text-faint:#999;--brand:#ececec;--brand-strong:#fff;--brand-text:#212121;--ring:#ffffff20}
+body.light:not(.theme-vercel){--bg:#fff;--surface:#fff;--surface-2:#f4f4f4;--border:#ddd;--border-strong:#aaa;--text:#212121;--text-dim:#616161;--text-faint:#707070;--brand:#212121;--brand-strong:#111;--brand-text:#fff;--ring:#21212120}
+.vl-glow{display:none!important}.vl-box{border-radius:16px!important;box-shadow:0 12px 40px #00000012!important}.vl-btn{background:var(--brand)!important;color:var(--brand-text)!important;box-shadow:none!important;border-radius:9px!important}.vl-logo{color:var(--text)!important}.vl-sub{line-height:1.7;max-width:340px}
+@media(max-width:700px){body.theme-vercel .evidencia-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}body.theme-vercel .wo-body{padding:16px!important}}

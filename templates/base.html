@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Modus{% endblock %}</title>
+    <!-- Favicon (SVG Inincrustado para que funcione siempre) -->
+    <link rel="icon" type="image/svg+xml" href="/static/img/modus.svg">
+
+    <!-- Tabulator CSS for the Excel-like grid -->
+    <link href="/static/vendor/css/tabulator.min.css?v=1" rel="stylesheet">
+    <link rel="stylesheet" href="/static/vendor/css/fontawesome.min.css?v=1">
+    <link rel="stylesheet" href="/static/css/style.css?v=3.0">
+    <link rel="stylesheet" href="/static/css/themes.css?v=5">
+    <link rel="stylesheet" href="/static/css/mobile.css?v=2">
+    <!-- Librerías servidas en LOCAL: eliminar el bloqueo de ~1,9 s de 4 CDNs en la primera carga -->
+    <script src="/static/js/luxon.min.js?v=1"></script>
+    <script src="/static/js/xlsx.full.min.js?v=1"></script>
+    <script src="/static/js/chart.umd.min.js?v=1"></script>
+    <link rel="stylesheet" href="/static/css/modus.css?v=1">
+</head>
+<body>
+    <script>
+        // Tema único: Vercel por defecto (claro/oscuro persiste)
+        (function () {
+            try {
+                if (localStorage.getItem('modus-theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                }
+                document.body.classList.add('theme-vercel');
+                try{ localStorage.setItem('modus-theme-family', 'vercel'); localStorage.removeItem('nucleus-neumorphism'); }catch(e){}
+            } catch (e) {
+                document.body.classList.add('theme-vercel');
+            }
+        })();
+    </script>
+    <div class="app-shell">
+        {% if session.get('user_id') %}
+        <!-- Sidebar de navegacion (el Gestor ve solo sus módulos y el Dashboard en lectura) -->
+        <aside class="app-sidebar">
+            <button id="sidebar-collapse" class="sidebar-collapse-btn" title="Contraer/Expandir menú" aria-label="Contraer o expandir menú">
+                <i class="fa-solid fa-angles-left"></i>
+            </button>
+            <a href="/" class="sidebar-logo" style="display: flex; align-items: center; text-decoration: none; color: var(--ios-label, #1C1C1E);">
+                <svg width="30" height="30" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="color: var(--ios-accent);">
+                    <rect x="3" y="3" width="26" height="26" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 23V10l7 8 7-8v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span style="margin-left: 8px; font-family: 'SF Pro Display','Segoe UI',Roboto,sans-serif; font-size: 17px; font-weight: 600; color: var(--ios-label, #1C1C1E); letter-spacing: 1px;" title="Módulos de Operación, Despacho, Umbrales y Seguimiento">MODUS</span>
+            </a>
+
+            <nav class="sidebar-nav">
+                {% if (session.get('rol') or '').lower() not in ['gestor', 'contrata'] %}
+                <a href="/analytics" class="sidebar-link {% if request.path == '/analytics' or request.path == '/dashboard' %}active{% endif %}" data-nav="/analytics">
+                    <i class="fa-solid fa-chart-pie"></i> <span class="sidebar-link-text">Analytics</span>
+                </a>
+                {% endif %}
+
+                <div class="sidebar-section-label">Módulos</div>
+                {% set _flm_asignados = proyectos_list | selectattr('nombre', 'in', ['FLM - ENTEL', 'FLM - INTEGRATEL', 'FLM - CLARO']) | list %}
+                {% set _orden_modulos = ['FLM', 'FLM - ENTEL', 'FLM - INTEGRATEL', 'FLM - CLARO', 'Combustible', 'Cotizaciones', 'Dataper', 'Material', 'Generadores', 'SITE', 'Rendicion'] %}
+                {% for _nombre_mod in _orden_modulos %}
+                {% for p in proyectos_list %}
+                {% if p.nombre == _nombre_mod and not (_flm_asignados and p.nombre in ['Dataper', 'Material', 'SITE', 'Generadores']) %}
+                <a href="/switch_project/{{ p.id }}?next=/" class="sidebar-link {% if request.path == '/' and (p.id == session.get('current_proyecto_id') or (flm_resource_context and p.id == flm_resource_context.flm_id)) %}active{% endif %}" data-nav="/">
+                    <i class="fa-solid {{ p.icono or 'fa-folder-open' }}"></i> <span class="sidebar-link-text">{{ p.nombre }}</span>
+                </a>
+                {% endif %}
+                {% endfor %}
+                {% endfor %}
+
+                <a href="/liquidaciones/" class="sidebar-link {% if (request.path.startswith('/refacturable') or request.path.startswith('/liquidaciones')) %}active{% endif %}" data-nav="/liquidaciones/">
+                    <i class="fa-solid fa-file-invoice"></i> <span class="sidebar-link-text">Liquidaciones</span>
+                </a>
+                {% if not _flm_asignados and (session.get('rol') or '').lower() not in ['gestor', 'contrata'] %}
+                <a href="/mapa-site" class="sidebar-link {% if request.path == '/mapa-site' or request.path == '/mapa' %}active{% endif %}" data-nav="/mapa-site">
+                    <i class="fa-solid fa-map-location-dot"></i> <span class="sidebar-link-text">Mapa Sites</span>
+                </a>
+                {% endif %}
+
+                {% if (session.get('rol') or '').lower() in ['zeno', 'suport'] %}
+                <a href="/usuarios" class="sidebar-link {% if request.path == '/usuarios' %}active{% endif %}" data-nav="/usuarios">
+                    <i class="fa-solid fa-users-gear"></i> <span class="sidebar-link-text">Usuarios</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <nav class="sidebar-legal" aria-label="Políticas de Modus">
+                <a href="/privacidad">Privacidad</a>
+                <a href="/terminos">Términos</a>
+                <a href="/cookies">Cookies</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" style="background:#fff;"><img src="/static/img/cobra-logo.png" alt="Cobra" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"></div>
+                    <div class="sidebar-user-info">
+                        <div style="font-size: 13px; font-weight: 700; color: var(--ios-label, #1C1C1E);">{{ session.get('username') }}</div>
+                        <div style="font-size: 10px; color: var(--ios-gray-1, #8E8E93); text-transform: uppercase; letter-spacing: 0.4px;">{{ session.get('rol') }}</div>
+                    </div>
+                </div>
+                <div class="sidebar-actions">
+                    <button id="theme-toggle" class="sidebar-theme-toggle" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <a href="/logout" title="Cerrar Sesión" class="sidebar-logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+                </div>
+            </div>
+        </aside>
+        {% endif %}
+
+        <div class="app-main" data-flm-resource="{{ flm_resource_context.flm_nombre if flm_resource_context and flm_resource_context.recurso in ['personal','material'] else '' }}" data-proyecto-id="{{ session.get('current_proyecto_id', '') }}" data-flm-origin="{{ flm_resource_context.flm_id if flm_resource_context else (session.get('current_proyecto_id') if session.get('current_proyecto_nombre') in ['FLM - ENTEL','FLM - INTEGRATEL','FLM - CLARO'] else '') }}">
+            <!-- Main Content Grid -->
+            <main class="excel-main">
+                {% if request.path != '/' %}{% include '_flm_recursos.html' %}{% endif %}
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Bottom Bar (Status Bar) -->
+            {% block footer %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="/static/js/tabulator.min.js?v=1"></script>
+    <script>
+        // Highlighting active nav items in the sidebar
+        const currentPath = window.location.pathname;
+        const currentHash = window.location.hash;
+        const currentFull = currentPath + currentHash;
+
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && (href === currentFull || href === currentPath)) {
+                link.classList.add('active');
+            }
+        });
+
+        window.addEventListener('hashchange', () => {
+            const newFull = window.location.pathname + window.location.hash;
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === newFull);
+            });
+        });
+
+        // Vercel es el único tema — se asegura clase fija
+
+        // Toggle de tema claro/oscuro (persistente)
+        (function () {
+            const toggleBtn = document.getElementById('theme-toggle');
+            if (!toggleBtn) return;
+            const icon = toggleBtn.querySelector('i');
+            const applyIcon = () => {
+                const dark = document.body.classList.contains('dark-mode');
+                icon.className = dark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            };
+            applyIcon();
+            toggleBtn.addEventListener('click', () => {
+                const dark = document.body.classList.toggle('dark-mode');
+                try { localStorage.setItem('modus-theme', dark ? 'dark' : 'light'); } catch (e) {}
+                applyIcon();
+            });
+        })();
+
+        // Toggle de contraer/expandir el menú lateral (persistente)
+        (function () {
+            const btn = document.getElementById('sidebar-collapse');
+            if (!btn) return;
+            const icon = btn.querySelector('i');
+            const applyIcon = () => {
+                const collapsed = document.body.classList.contains('sidebar-collapsed');
+                icon.className = collapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left';
+            };
+            try {
+                if (localStorage.getItem('modus-sidebar') === 'collapsed') {
+                    document.body.classList.add('sidebar-collapsed');
+                }
+            } catch (e) {}
+            applyIcon();
+            btn.addEventListener('click', () => {
+                const collapsed = document.body.classList.toggle('sidebar-collapsed');
+                try { localStorage.setItem('modus-sidebar', collapsed ? 'collapsed' : 'expanded'); } catch (e) {}
+                applyIcon();
+                window.dispatchEvent(new Event('resize'));
+            });
+        })();
+
+    </script>
+    <script src="{{ url_for('static', filename='js/api-response.js') }}?v=2"></script>
+    <script src="{{ url_for('static', filename='js/catalogos-autocomplete.js') }}?v=1"></script>
+    {% block scripts %}{% endblock %}
+
+    <!-- Bottom Nav Bar para móvil: se construye a partir del sidebar existente -->
+    <script>
+    (function () {
+        // Solo en pantallas móviles
+        if (window.innerWidth > 768) return;
+
+        // Recopilamos los links del sidebar
+        const sidebarLinks = Array.from(document.querySelectorAll('.sidebar-link'));
+        if (!sidebarLinks.length) return; // no autenticado
+
+        const nav = document.createElement('nav');
+        nav.id = 'mob-bottom-nav';
+        nav.setAttribute('aria-label', 'Navegación principal');
+
+        // Mostrar todos los módulos en la barra scrolleable
+        const items = sidebarLinks;
+        const currentHref = window.location.pathname + window.location.search;
+
+        items.forEach(link => {
+            const icon = link.querySelector('i');
+            const textEl = link.querySelector('.sidebar-link-text');
+            const href = link.getAttribute('href') || '#';
+            const label = (textEl ? textEl.textContent : link.textContent).trim();
+            const iconClass = icon ? icon.className : 'fa-solid fa-circle';
+            const isActive = link.classList.contains('active');
+            const isRendicion = label.toLowerCase().includes('rendicion') || label.toLowerCase().includes('rendición');
+
+            const btn = document.createElement('a');
+            btn.href = href;
+            btn.className = 'mob-nav-item' + (isActive ? ' mob-active' : '');
+            btn.setAttribute('aria-label', label);
+            btn.innerHTML = `
+                <i class="${iconClass}"></i>
+                ${ isRendicion ? '<span id="mob-nav-badge-rend" class="mob-nav-badge"></span>' : '' }
+                <span>${label.length > 7 ? label.slice(0,7) + '…' : label}</span>
+            `;
+            nav.appendChild(btn);
+        });
+
+        document.body.appendChild(nav);
+
+        // Sincronizar badge de rendición con el de la campanita
+        function syncRendBadge() {
+            const src = document.getElementById('rend-avisos-badge');
+            const dst = document.getElementById('mob-nav-badge-rend');
+            if (!src || !dst) return;
+            const n = parseInt(src.textContent || '0', 10);
+            dst.textContent = n > 0 ? (n > 99 ? '99+' : n) : '';
+            dst.classList.toggle('visible', n > 0);
+        }
+
+        // Observar cambios en el badge original
+        const badgeSrc = document.getElementById('rend-avisos-badge');
+        if (badgeSrc) {
+            new MutationObserver(syncRendBadge).observe(badgeSrc, { childList: true, characterData: true, subtree: true });
+            syncRendBadge();
+        }
+
+        // Re-evaluar en resize (por si rotan el teléfono)
+        window.addEventListener('resize', () => {
+            nav.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+        });
+    })();
+    </script>
+
+    <!-- Modus Dialog — reemplaza alert/confirm/prompt nativos -->
+    <div id="nucleus-dialog" class="nucleus-dialog-overlay" aria-hidden="true">
+        <div class="nucleus-dialog-card" role="dialog" aria-modal="true" aria-labelledby="nucleus-dialog-title">
+            <div id="nucleus-dialog-icon" class="nucleus-dialog-icon"><i class="fa-solid fa-circle-info"></i></div>
+            <h3 id="nucleus-dialog-title" class="nucleus-dialog-title">Aviso</h3>
+            <div id="nucleus-dialog-message" class="nucleus-dialog-message"></div>
+            <input id="nucleus-dialog-input" class="nucleus-dialog-input" style="display:none" type="text" />
+            <div class="nucleus-dialog-actions">
+                <button id="nucleus-dialog-cancel" class="nucleus-dialog-btn nucleus-dialog-btn-secondary" type="button" style="display:none">Cancelar</button>
+                <button id="nucleus-dialog-ok" class="nucleus-dialog-btn nucleus-dialog-btn-primary" type="button">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Popup temático — reemplaza alert/confirm/prompt
+    (function(){
+        const overlay = document.getElementById('nucleus-dialog');
+        const titleEl = document.getElementById('nucleus-dialog-title');
+        const msgEl = document.getElementById('nucleus-dialog-message');
+        const inputEl = document.getElementById('nucleus-dialog-input');
+        const okBtn = document.getElementById('nucleus-dialog-ok');
+        const cancelBtn = document.getElementById('nucleus-dialog-cancel');
+        const iconEl = document.getElementById('nucleus-dialog-icon');
+        let _resolve = null;
+        let _type = 'alert';
+
+        function show({type='alert', title='Aviso', message='', defaultValue='', placeholder='', okText='Aceptar', cancelText='Cancelar', icon='fa-circle-info', inputType='text'}){
+            return new Promise(resolve=>{
+                _resolve = resolve;
+                _type = type;
+                titleEl.textContent = title;
+                msgEl.textContent = message;
+
+                const isDanger = /eliminar|borrar|remover|bloquear|quitar/i.test(message + ' ' + title);
+                const card = overlay.querySelector('.nucleus-dialog-card');
+                if (card) {
+                    card.classList.toggle('dialog-danger', isDanger);
+                }
+
+                let finalIcon = icon;
+                if (icon === 'fa-circle-info' || icon === 'fa-circle-question') {
+                    finalIcon = isDanger ? 'fa-triangle-exclamation' : (type === 'confirm' ? 'fa-circle-question' : 'fa-circle-info');
+                }
+                iconEl.innerHTML = '<i class="fa-solid ' + finalIcon + '"></i>';
+
+                if(type==='prompt'){
+                    inputEl.style.display='block';
+                    inputEl.type = inputType||'text';
+                    inputEl.value = defaultValue||'';
+                    inputEl.placeholder = placeholder||'';
+                } else {
+                    inputEl.style.display='none';
+                    inputEl.type='text';
+                }
+                okBtn.textContent = okText;
+                cancelBtn.textContent = cancelText;
+                cancelBtn.style.display = (type==='alert') ? 'none' : 'inline-flex';
+                overlay.style.display = '';
+                overlay.classList.add('show');
+                overlay.setAttribute('aria-hidden','false');
+                setTimeout(()=>{ (type==='prompt'?inputEl:okBtn).focus(); }, 30);
+                document.body.style.overflow='hidden';
+            });
+        }
+        function close(result){
+            overlay.classList.remove('show');
+            overlay.setAttribute('aria-hidden','true');
+            document.body.style.overflow='';
+            if(_resolve){ const r=_resolve; _resolve=null; r(result); }
+        }
+        okBtn.addEventListener('click', ()=>{
+            if(_type==='prompt') close(inputEl.value);
+            else if(_type==='confirm') close(true);
+            else close(true);
+        });
+        cancelBtn.addEventListener('click', ()=>{
+            if(_type==='prompt') close(null);
+            else close(false);
+        });
+        overlay.addEventListener('click', (e)=>{ if(e.target===overlay) { if(_type==='prompt') close(null); else if(_type==='confirm') close(false); else close(true); } });
+        document.addEventListener('keydown', (e)=>{
+            if(!overlay.classList.contains('show')) return;
+            if(e.key==='Escape'){ e.preventDefault(); if(_type==='prompt') close(null); else if(_type==='confirm') close(false); else close(true); }
+            if(e.key==='Enter' && _type==='prompt'){ e.preventDefault(); close(inputEl.value); }
+            if(e.key==='Enter' && _type!=='prompt'){ e.preventDefault(); if(_type==='confirm') close(true); else close(true); }
+        });
+
+        window.nucleusAlert = (message, title='Aviso') => {
+            if (String(message).includes('Tu sesión venció.')) {
+                window.location.assign('/login');
+                return Promise.resolve();
+            }
+            return show({type:'alert', title, message: String(message), okText:'Entendido', icon:'fa-circle-info'});
+        };
+        window.nucleusConfirm = (message, title='Confirmar') => show({type:'confirm', title, message: String(message), okText:'Aceptar', cancelText:'Cancelar', icon:'fa-circle-question'});
+        window.nucleusPrompt = (message, defaultValue='', title='Ingresar', inputType='text') => show({type:'prompt', title, message: String(message), defaultValue: String(defaultValue||''), okText:'Aceptar', cancelText:'Cancelar', icon:'fa-pen-to-square', inputType});
+        window._originalAlert = window.alert;
+        window._originalConfirm = window.confirm;
+        window._originalPrompt = window.prompt;
+        // Redirige alert nativo al popup temático — ignora vacíos para no mostrar "Aviso" vacío
+        window.alert = function(msg){ const m=String(msg||'').trim(); if(!m) return; try{ nucleusAlert(m); }catch(e){ window._originalAlert(m); } };
+    })();
+    </script>
+    <script>document.addEventListener('DOMContentLoaded',function(){var o=document.getElementById('nucleus-dialog'),m=document.getElementById('nucleus-dialog-message');if(o&&m&&!m.textContent.trim()){o.classList.remove('show');o.style.display='none'}});</script>
+    {% include 'cookie_banner.html' %}
+</body>
+</html>

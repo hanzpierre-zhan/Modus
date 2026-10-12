@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+instance/*.db
+instance/session.key
+
+# Evidence / uploads (local only)
+instance/evidencia/
+static/evidencia/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Scratch / temp
+scratch/
+*.tmp
+
+# Backup files
+*.bak
+*~
+
+# PDF template (local file, not for repo)
+REPORTE FOTOGRAFICO _ CORRECTIVOS.xlsx
+
+# Static assets that are generated or local-only
+static/img/cobra-logo.png
