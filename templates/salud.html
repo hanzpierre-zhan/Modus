@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Salud Modus{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fa-solid fa-heart-pulse"></i> Salud de la Plataforma</h1>
+    <p class="page-subtitle">Estado en tiempo real de Render, Neon, B2 y la app</p>
+</div>
+
+<div class="salud-grid" id="saludGrid">
+    <!-- Render -->
+    <section class="salud-card" id="card-render">
+        <div class="card-head">
+            <h2><i class="fa-brands fa-render"></i> Render (Host)</h2>
+            <span class="badge" id="render-badge">Cargando…</span>
+        </div>
+        <div class="card-body">
+            <div class="info-row"><span>Estado:</span><strong id="render-status">—</strong></div>
+            <div class="info-row"><span>Plan:</span><strong id="render-plan">—</strong></div>
+            <div class="info-row"><span>Región:</span><strong id="render-region">—</strong></div>
+            <div class="info-row"><span>Último deploy:</span><strong id="render-updated">—</strong></div>
+            <div class="info-row"><span>URL:</span><strong id="render-url">—</strong></div>
+            <div class="card-actions">
+                <a id="render-metrics" class="btn btn-secondary" target="_blank" rel="noopener" style="display:none">
+                    <i class="fa-solid fa-chart-line"></i> Ver métricas en Render
+                </a>
+            </div>
+            <p class="note" id="render-note"></p>
+        </div>
+    </section>
+
+    <!-- Neon -->
+    <section class="salud-card" id="card-neon">
+        <div class="card-head">
+            <h2><i class="fa-solid fa-database"></i> Neon (PostgreSQL)</h2>
+            <span class="badge" id="neon-badge">Cargando…</span>
+        </div>
+        <div class="card-body">
+            <div class="progress-wrap">
+                <div class="progress-bar" id="neon-bar" style="width:0%"></div>
+            </div>
+            <div class="progress-labels">
+                <span id="neon-used">— MB</span>
+                <span id="neon-pct">—%</span>
+                <span id="neon-limit">de 512 MB</span>
+            </div>
+            <div class="info-row"><span>Latencia:</span><strong id="neon-latency">— ms</strong></div>
+            <p class="note">Free tier: 0.5 GB. Límite duro.</p>
+        </div>
+    </section>
+
+    <!-- B2 -->
+    <section class="salud-card" id="card-b2">
+        <div class="card-head">
+            <h2><i class="fa-solid fa-hdd"></i> Backblaze B2 (Storage)</h2>
+            <span class="badge" id="b2-badge">Cargando…</span>
+        </div>
+        <div class="card-body">
+            <div class="progress-wrap">
+                <div class="progress-bar" id="b2-bar" style="width:0%"></div>
+            </div>
+            <div class="progress-labels">
+                <span id="b2-used">— MB</span>
+                <span id="b2-pct">—%</span>
+                <span id="b2-limit">de 10 GB</span>
+            </div>
+            <div class="info-row"><span>Archivos:</span><strong id="b2-files">—</strong></div>
+            <p class="note">Free tier: 10 GB + 1 GB/día egress.</p>
+        </div>
+    </section>
+
+    <!-- App -->
+    <section class="salud-card" id="card-app">
+        <div class="card-head">
+            <h2><i class="fa-solid fa-cubes"></i> Aplicación</h2>
+            <span class="badge ok">OK</span>
+        </div>
+        <div class="card-body app-stats">
+            <div class="stat"><span class="stat-val" id="app-users">—</span><span class="stat-label">Usuarios</span></div>
+            <div class="stat"><span class="stat-val" id="app-projects">—</span><span class="stat-label">Proyectos</span></div>
+            <div class="stat"><span class="stat-val" id="app-cotizaciones">—</span><span class="stat-label">Cotizaciones</span></div>
+            <div class="stat"><span class="stat-val" id="app-evidencias">—</span><span class="stat-label">Evidencias</span></div>
+            <div class="info-row"><span>Commit:</span><strong id="app-commit">—</strong></div>
+        </div>
+    </section>
+</div>
+
+<!-- UptimeRobot hint -->
+<div class="salud-card uptime-hint">
+    <div class="card-head">
+        <h2><i class="fa-solid fa-bell"></i> Monitor externo (gratis)</h2>
+    </div>
+    <div class="card-body">
+        <p>¿Quieres que te avisen por email si la web se cae? Crea un monitor en <a href="https://uptimerobot.com" target="_blank" rel="noopener">UptimeRobot</a> (plan gratis):</p>
+        <ol class="uptime-steps">
+            <li>Add New Monitor → HTTP(s)</li>
+            <li>URL: <code>{{ request.url_root }}healthz</code></li>
+            <li>Intervalo: 5 min (o 10 min para ahorrar horas)</li>
+            <li>Alert Contacts: tu email</li>
+        </ol>
+        <p class="note">Bonus: el ping cada 5 min evita el <em>spindown</em> de la instancia Free de Render.</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header { margin-bottom: 1.5rem; }
+.page-header h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; display:flex; align-items:center; gap:0.5rem; }
+.page-subtitle { color: var(--ios-gray-1, #8E8E93); font-size: 0.95rem; }
+
+.salud-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+
+.salud-card {
+    background: var(--ios-card-bg, #fff);
+    border: 1px solid var(--ios-border, #E5E5EA);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.dark-mode .salud-card { background: var(--ios-card-bg-dark, #1C1C1E); border-color: var(--ios-border-dark, #38383A); }
+
+.card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; }
+.card-head h2 { font-size: 1.1rem; font-weight: 600; margin:0; display:flex; align-items:center; gap:0.5rem; }
+.badge { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 999px; text-transform:uppercase; letter-spacing:.03em; }
+.badge.ok { background:#DCFCE7; color:#166534; }
+.badge.warn { background:#FEF3C7; color:#92400E; }
+.badge.error { background:#FEE2E2; color:#991B1B; }
+.badge.loading { background:#E5E7EB; color:#374151; }
+.dark-mode .badge.ok { background:#064E3B; color:#A7F3D0; }
+.dark-mode .badge.warn { background:#78350F; color:#FDE68A; }
+.dark-mode .badge.error { background:#7F1D1D; color:#FCA5A5; }
+.dark-mode .badge.loading { background:#374151; color:#D1D5DB; }
+
+.card-body { font-size: 0.9rem; }
+.info-row { display:flex; justify-content:space-between; padding:0.35rem 0; border-bottom:1px solid var(--ios-border, #E5E5EA); }
+.info-row:last-child { border-bottom:none; }
+.info-row span { color: var(--ios-gray-1, #8E8E93); }
+.info-row strong { font-weight:600; }
+
+.progress-wrap { height:10px; background:var(--ios-border, #E5E5EA); border-radius:999px; overflow:hidden; margin-bottom:0.5rem; }
+.progress-bar { height:100%; background:linear-gradient(90deg,#22C55E,#16A34A); border-radius:999px; transition:width .4s ease; }
+.progress-bar.warn { background:linear-gradient(90deg,#F59E0B,#D97706); }
+.progress-bar.error { background:linear-gradient(90deg,#EF4444,#DC2626); }
+.progress-labels { display:flex; justify-content:space-between; font-size:0.75rem; color:var(--ios-gray-1, #8E8E93); margin-bottom:0.5rem; }
+
+.card-actions { margin-top:0.75rem; }
+.btn { display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 0.9rem; border-radius:10px; font-size:0.85rem; font-weight:600; text-decoration:none; border:1px solid transparent; cursor:pointer; }
+.btn-secondary { background:var(--ios-card-bg, #fff); color:var(--ios-label, #1C1C1E); border-color:var(--ios-border, #E5E5EA); }
+.btn-secondary:hover { background:var(--ios-gray-4, #F2F2F7); }
+.dark-mode .btn-secondary { background:#2C2C2E; border-color:#38383A; color:#fff; }
+.dark-mode .btn-secondary:hover { background:#3A3A3C; }
+
+.note { font-size:0.75rem; color:var(--ios-gray-1, #8E8E93); margin-top:0.5rem; }
+
+.app-stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap:0.75rem; }
+.stat { text-align:center; padding:0.75rem; background:var(--ios-gray-4, #F2F2F7); border-radius:12px; }
+.dark-mode .stat { background:#2C2C2E; }
+.stat-val { display:block; font-size:1.75rem; font-weight:700; color:var(--ios-accent, #007AFF); line-height:1; }
+.stat-label { font-size:0.7rem; color:var(--ios-gray-1, #8E8E93); text-transform:uppercase; letter-spacing:.05em; margin-top:0.25rem; display:block; }
+
+.uptime-hint { border-left:4px solid var(--ios-accent, #007AFF); }
+.uptime-steps { margin:0.5rem 0 0 1.25rem; padding:0; font-size:0.85rem; line-height:1.8; }
+.uptime-steps code { background:var(--ios-gray-4, #F2F2F7); padding:0.1rem 0.4rem; border-radius:4px; font-size:0.8rem; }
+.dark-mode .uptime-steps code { background:#2C2C2E; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const fmtBytes = (b) => {
+        if (!b && b !== 0) return '—';
+        const u = ['B','KB','MB','GB','TB']; let i=0;
+        while (b >= 1024 && i < u.length-1) { b/=1024; i++; }
+        return b.toFixed(i?1:0)+' '+u[i];
+    };
+    const fmtDate = (iso) => {
+        if (!iso) return '—';
+        try { return new Date(iso).toLocaleString('es-ES', {dateStyle:'short', timeStyle:'short'}); } catch { return iso; }
+    };
+    const setBadge = (el, status) => {
+        el.classList.remove('ok','warn','error','loading');
+        if (status === 'ok') el.classList.add('ok');
+        else if (status === 'warn') el.classList.add('warn');
+        else if (status === 'error') el.classList.add('error');
+        else el.classList.add('loading');
+    };
+
+    async function cargarSalud() {
+        try {
+            const res = await fetch('/api/salud', { credentials:'same-origin' });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || 'Error');
+
+            // Render
+            const r = d.render || {};
+            const rBadge = document.getElementById('render-badge');
+            const rStatus = document.getElementById('render-status');
+            const rMetrics = document.getElementById('render-metrics');
+            const rNote = document.getElementById('render-note');
+            if (r.error) {
+                setBadge(rBadge, 'error');
+                rStatus.textContent = 'Error: ' + r.error;
+                rNote.textContent = 'Configura RENDER_API_KEY y RENDER_SERVICE_ID en Render → Environment.';
+            } else if (r.status) {
+                const st = r.status.toLowerCase();
+                if (st.includes('live') || st === 'active') setBadge(rBadge, 'ok');
+                else if (st.includes('build') || st.includes('deploy')) setBadge(rBadge, 'warn');
+                else if (st.includes('sleep') || st.includes('suspended')) setBadge(rBadge, 'warn');
+                else setBadge(rBadge, 'error');
+                rStatus.textContent = r.status;
+                document.getElementById('render-plan').textContent = r.plan || '—';
+                document.getElementById('render-region').textContent = r.region || '—';
+                document.getElementById('render-updated').textContent = fmtDate(r.updatedAt);
+                document.getElementById('render-url').textContent = r.url || '—';
+                if (r.metrics_url) {
+                    rMetrics.href = r.metrics_url;
+                    rMetrics.style.display = 'inline-flex';
+                }
+                if (r.note) rNote.textContent = r.note;
+            } else {
+                setBadge(rBadge, 'loading');
+                rStatus.textContent = 'Sin API Key';
+                rNote.textContent = r.note || 'Configura RENDER_API_KEY y RENDER_SERVICE_ID para ver estado.';
+            }
+
+            // Neon
+            const n = d.neon || {};
+            const nBar = document.getElementById('neon-bar');
+            const nBadge = document.getElementById('neon-badge');
+            if (n.error) {
+                setBadge(nBadge, 'error');
+                nBar.style.width = '0%';
+                nBar.className = 'progress-bar error';
+                document.getElementById('neon-used').textContent = 'Error';
+                document.getElementById('neon-pct').textContent = '—';
+                document.getElementById('neon-latency').textContent = '—';
+            } else {
+                const pct = Math.min(100, Math.max(0, n.pct_used || 0));
+                nBar.style.width = pct + '%';
+                nBar.className = 'progress-bar' + (pct >= 90 ? ' error' : pct >= 70 ? ' warn' : '');
+                setBadge(nBadge, pct >= 90 ? 'error' : pct >= 70 ? 'warn' : 'ok');
+                document.getElementById('neon-used').textContent = fmtBytes(n.size_bytes);
+                document.getElementById('neon-pct').textContent = pct.toFixed(1) + '%';
+                document.getElementById('neon-limit').textContent = 'de ' + fmtBytes(n.limit_mb * 1024 * 1024);
+                document.getElementById('neon-latency').textContent = (n.latency_ms || 0).toFixed(0) + ' ms';
+            }
+
+            // B2
+            const b = d.b2 || {};
+            const bBar = document.getElementById('b2-bar');
+            const bBadge = document.getElementById('b2-badge');
+            if (b.error) {
+                setBadge(bBadge, 'error');
+                bBar.style.width = '0%';
+                bBar.className = 'progress-bar error';
+                document.getElementById('b2-used').textContent = 'Error';
+                document.getElementById('b2-pct').textContent = '—';
+                document.getElementById('b2-files').textContent = '—';
+            } else {
+                const pct = Math.min(100, Math.max(0, b.pct_used || 0));
+                bBar.style.width = pct + '%';
+                bBar.className = 'progress-bar' + (pct >= 90 ? ' error' : pct >= 70 ? ' warn' : '');
+                setBadge(bBadge, pct >= 90 ? 'error' : pct >= 70 ? 'warn' : 'ok');
+                document.getElementById('b2-used').textContent = fmtBytes(b.size_bytes);
+                document.getElementById('b2-pct').textContent = pct.toFixed(1) + '%';
+                document.getElementById('b2-limit').textContent = 'de ' + fmtBytes(b.limit_mb * 1024 * 1024);
+                document.getElementById('b2-files').textContent = (b.files || 0).toLocaleString('es-ES');
+            }
+
+            // App
+            const a = d.app || {};
+            document.getElementById('app-users').textContent = a.usuarios || '—';
+            document.getElementById('app-projects').textContent = a.proyectos || '—';
+            document.getElementById('app-cotizaciones').textContent = a.cotizaciones || '—';
+            document.getElementById('app-evidencias').textContent = a.evidencias || '—';
+            document.getElementById('app-commit').textContent = d.commit || '—';
+
+        } catch (e) {
+            console.error(e);
+            ['render-badge','neon-badge','b2-badge'].forEach(id => setBadge(document.getElementById(id), 'error'));
+        }
+    }
+
+    document.getElementById('saludGrid').addEventListener('click', (e) => {
+        if (e.target.closest('#refresh-btn')) cargarSalud();
+    });
+
+    // Carga inicial y auto-refresh cada 60s
+    cargarSalud();
+    setInterval(cargarSalud, 60000);
+
+    // Botón refresh en header (opcional, si lo añades)
+    const style = document.createElement('style');
+    style.textContent = `#refresh-btn { margin-left:auto; padding:0.4rem 0.8rem; font-size:0.8rem; }`;
+    document.head.appendChild(style);
+})();
+</script>
+{% endblock %}
