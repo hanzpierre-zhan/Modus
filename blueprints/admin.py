@@ -969,7 +969,7 @@ def salud_panel():
     """Panel de salud de la plataforma (solo zeno/suport)."""
     if session.get('rol') not in ('zeno', 'suport'):
         return redirect(url_for('pages.index'))
-    return render_template('salud.html')
+    return render_template('resources.html')
 
 
 @bp.route('/api/salud')
@@ -979,125 +979,7 @@ def api_salud():
     if session.get('rol') not in ('zeno', 'suport'):
         return jsonify({'error': 'No autorizado'}), 403
 
-    import time, json, urllib.request
-    from sqlalchemy import func, text
-    from db import db
-    from models import Usuario, Proyecto, NucleusData, Cotizacion
-    from flask import current_app
-
-    data = {
-        'timestamp': datetime.utcnow().isoformat() + 'Z',
-        'commit': None,
-        'render': {},
-        'neon': {},
-        'b2': {},
-        'app': {}
-    }
-
-    # ── Commit actual ──
-    try:
-        import subprocess
-        data['commit'] = subprocess.check_output(
-            ['git', 'rev-parse', '--short', 'HEAD'],
-            cwd=current_app.root_path, stderr=subprocess.DEVNULL
-        ).decode().strip()
-    except Exception:
-        data['commit'] = 'desconocido'
-
-    # ── RENDER (solo si hay API key) ──
-    render_key = current_app.config.get('RENDER_API_KEY') or os.environ.get('RENDER_API_KEY')
-    render_svc = current_app.config.get('RENDER_SERVICE_ID') or os.environ.get('RENDER_SERVICE_ID')
-    if render_key and render_svc:
-        try:
-            req = urllib.request.Request(
-                f'https://api.render.com/v1/services/{render_svc}',
-                headers={'Authorization': f'Bearer {render_key}', 'Accept': 'application/json'}
-            )
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                r = json.loads(resp.read())
-            data['render'] = {
-                'status': r.get('serviceDetails', {}).get('status', 'desconocido'),
-                'updatedAt': r.get('updatedAt'),
-                'url': r.get('serviceDetails', {}).get('url'),
-                'region': r.get('region'),
-                'plan': r.get('plan'),
-                'metrics_url': f'https://dashboard.render.com/web/{render_svc}/metrics',
-            }
-        except Exception as e:
-            data['render'] = {'error': str(e), 'metrics_url': f'https://dashboard.render.com/web/{render_svc}/metrics'}
-    else:
-        data['render'] = {'note': 'Configura RENDER_API_KEY y RENDER_SERVICE_ID para ver estado', 'metrics_url': None}
-
-    # ── NEON (BD) ──
-    t0 = time.time()
-    try:
-        # Tamaño BD
-        row = db.session.execute(text("SELECT pg_database_size(current_database())")).scalar()
-        size_bytes = int(row or 0)
-        limit_bytes = 536870912  # 0.5 GB free tier Neon
-        data['neon'] = {
-            'size_bytes': size_bytes,
-            'size_mb': round(size_bytes / 1024 / 1024, 1),
-            'limit_mb': round(limit_bytes / 1024 / 1024, 1),
-            'pct_used': round((size_bytes / limit_bytes) * 100, 1) if limit_bytes else 0,
-            'latency_ms': round((time.time() - t0) * 1000, 1),
-            'status': 'ok'
-        }
-    except Exception as e:
-        data['neon'] = {'error': str(e), 'status': 'error'}
-
-    # ── B2 (Storage) ──
-    try:
-        b2_bucket = current_app.config.get('B2_BUCKET')
-        b2_key = current_app.config.get('B2_KEY_ID')
-        b2_secret = current_app.config.get('B2_APP_KEY')
-        b2_endpoint = current_app.config.get('B2_ENDPOINT_URL')
-        b2_region = current_app.config.get('B2_REGION', 'us-west-004')
-
-        if b2_bucket and b2_key and b2_secret:
-            try:
-                import boto3
-            except ImportError:
-                data['b2'] = {'error': 'boto3 no instalado', 'status': 'error'}
-            else:
-                client = boto3.client(
-                    's3',
-                    endpoint_url=b2_endpoint or f'https://s3.{b2_region}.backblazeb2.com',
-                    aws_access_key_id=b2_key,
-                    aws_secret_access_key=b2_secret,
-                    region_name=b2_region
-                )
-                total_size = 0
-                total_files = 0
-                paginator = client.get_paginator('list_objects_v2')
-                for page in paginator.paginate(Bucket=b2_bucket):
-                    for obj in page.get('Contents', []):
-                        total_size += obj['Size']
-                        total_files += 1
-                limit_bytes = 10737418240  # 10 GB free tier B2
-                data['b2'] = {
-                    'bucket': b2_bucket,
-                    'size_bytes': total_size,
-                    'size_mb': round(total_size / 1024 / 1024, 1),
-                    'limit_mb': round(limit_bytes / 1024 / 1024, 1),
-                    'pct_used': round((total_size / limit_bytes) * 100, 1) if limit_bytes else 0,
-                    'files': total_files,
-                    'status': 'ok'
-                }
-        else:
-            data['b2'] = {'error': 'Credenciales B2 no configuradas', 'status': 'error'}
-    except Exception as e:
-        data['b2'] = {'error': str(e), 'status': 'error'}
-
-    # ── APP (conteos) ──
-    try:
-        data['app'] = {
-            'usuarios': Usuario.query.count(),
-            'proyectos': Proyecto.query.count(),
-            'cotizaciones': Cotizacion.query.count() if hasattr(Cotizacion, 'query') else 0,
-            'evidencias': NucleusData.query.count(),
-        }
-    except Exception:
-        data['app'] = {}
-
-    return jsonify(data)
+    from services.resources import snapshot
+    response = jsonify(snapshot())
+    response.headers['Cache-Control'] = 'no-store'
+    return response
