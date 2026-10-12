@@ -18,7 +18,7 @@ Estructura del proyecto:
 import os
 import gzip
 import mimetypes
-from flask import Flask, request, jsonify, Response, current_app
+from flask import Flask, request, jsonify, Response, current_app, session
 from werkzeug.exceptions import HTTPException
 
 from db import db
@@ -148,7 +148,9 @@ def _register_blueprints(app):
     @app.context_processor
     def recursos_contexto_template():
         from services.recursos_flm import contexto_recursos
-        return {'flm_resource_context': contexto_recursos()}
+        from services.branding import logo_url
+        return {'flm_resource_context': contexto_recursos(),
+                'sidebar_logo_url': logo_url() if session.get('user_id') else None}
 
 
 
@@ -156,6 +158,8 @@ def _register_blueprints(app):
 # Invalidación del cache de "opciones del Detalle" (ver blueprints/wo.py)
 # ─────────────────────────────────────────────────────────────────────────────
 def _on_commit(*_args, **_kwargs):
+    from flask import request,has_request_context
+    if has_request_context():request.environ.pop('nucleus.menu_proyectos_cache',None)
     try:
         from blueprints.wo import invalidar_opciones_cache
         invalidar_opciones_cache()
@@ -205,6 +209,8 @@ def create_app(config_object=None):
     db.init_app(app)
     _register_opciones_cache_invalidation()
     _register_blueprints(app)
+    from services.legacy_columns import install,clean_existing_config
+    install()
     from services.operador import instalar,preparar_configuracion
     instalar(app)
 
@@ -212,6 +218,7 @@ def create_app(config_object=None):
     from migrations import run_migrations
     database_url = os.environ.get('MODUS_DATABASE_URL', '')
     run_migrations(app, database_url)
+    with app.app_context():clean_existing_config()
     if app.config.get('MODUS_SCOPE'):
         with app.app_context():preparar_configuracion()
 

@@ -28,6 +28,52 @@ from services import *
 bp = Blueprint('admin', __name__)
 
 
+@bp.route('/api/branding/logo', methods=['GET', 'POST'])
+@login_required
+def branding_logo():
+    from services.branding import LOGO_KEY, logo_bytes, logo_url
+    if request.method == 'GET':
+        content = logo_bytes()
+        if content is None:
+            return redirect(url_for('static', filename='img/modus.svg'))
+        response = Response(content, mimetype='image/png')
+        response.headers['Cache-Control'] = 'private, max-age=3600'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        return response
+    if session.get('rol') not in ('zeno', 'suport'):
+        return jsonify({'error': 'Solo administración puede cambiar el logo.'}), 403
+    file = request.files.get('file')
+    if not file:
+        return jsonify({'error': 'Selecciona una imagen.'}), 400
+    content = file.read(2 * 1024 * 1024 + 1)
+    if len(content) > 2 * 1024 * 1024:
+        return jsonify({'error': 'La imagen debe pesar como máximo 2 MB.'}), 400
+    try:
+        from PIL import ImageOps
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(content)) as image:
+                if image.width * image.height > 16_000_000:
+                    raise ValueError('Imagen demasiado grande')
+                image = ImageOps.exif_transpose(image)
+                image.thumbnail((256, 256))
+                image = image.convert('RGBA')
+                output = io.BytesIO()
+                image.save(output, format='PNG')
+    except (OSError, ValueError, Image.DecompressionBombWarning, Image.DecompressionBombError):
+        return jsonify({'error': 'No se pudo leer la imagen. Prueba con PNG, JPG o WebP.'}), 400
+    import base64
+    value = base64.b64encode(output.getvalue()).decode('ascii')
+    row = TokenStore.query.filter_by(clave=LOGO_KEY).first()
+    if row:
+        row.valor = value
+    else:
+        db.session.add(TokenStore(clave=LOGO_KEY, valor=value))
+    db.session.commit()
+    return jsonify({'url': logo_url()})
+
+
 
 @bp.route('/api/debug/dataper', methods=['GET'])
 @login_required

@@ -189,6 +189,23 @@ def api_import_process():
             df = pd.read_excel(file, dtype=str)
             
         df.columns = [str(c).strip() for c in df.columns]
+        from services.integratel_import import prepare, compatible_row, configure, ALIASES
+        import_project = db.session.get(Proyecto, pid)
+        ticket_format = False
+        legacy_ticket_bridge = False
+        if import_project and import_project.nombre == 'FLM - INTEGRATEL' and import_type == 'base':
+            try:
+                df, ticket_format = prepare(df, manual_columns_list)
+            except ValueError as error:
+                return jsonify({'error': str(error)}), 400
+            if ticket_format:
+                file_key = 'Ticket ID'
+            else:
+                previous_pk = AppConfig.query.filter_by(proyecto_id=pid, clave='primary_key').first()
+                if previous_pk and previous_pk.valor == 'Ticket ID' and 'Número de WO' in df.columns:
+                    file_key = 'Número de WO'
+                    legacy_ticket_bridge = True
+        ticket_headers = list(df.columns) if ticket_format else []
         contexto = contexto_recursos()
         if contexto and session.get('current_proyecto_nombre') in ('Dataper', 'Material'):
             if 'PROYECTO' in df.columns:
@@ -419,6 +436,8 @@ def api_import_process():
             'Provincia', 'PROVINCIA',
             'Distrito', 'DISTRITO'
         ])
+        if ticket_format or legacy_ticket_bridge:
+            protected_fields.difference_update(set(ALIASES.values()) - set(manual_columns_list))
         
         # COMBUSTIBLE: precargar filas por generador UNA sola vez (antes se hacía
         # un full-scan de la tabla por cada fila GASTO importada).
@@ -446,6 +465,12 @@ def api_import_process():
 
         for idx, row in df.iterrows():
             row_dict = row.to_dict()
+            if legacy_ticket_bridge:
+                for source, legacy in ALIASES.items():
+                    if legacy in row_dict:
+                        row_dict[source] = row_dict[legacy]
+            if ticket_format:
+                row_dict = compatible_row(row_dict)
             key_val = str(row_dict.get(file_key, '')).strip()
             if not key_val: continue
             imported_keys.add(key_val)
@@ -517,6 +542,8 @@ def api_import_process():
 
             # --- 2. APLICAR REGLAS Y TABLAS MAESTRAS ---
             for regla in reglas:
+                if (ticket_format or legacy_ticket_bridge) and regla['nueva_columna'] in manual_columns_list:
+                    continue
                 match = True
                 for c, v in regla['condiciones']:
                     if str(current_data.get(c, '')) != v:
@@ -668,7 +695,11 @@ def api_import_process():
             _nuevas_bajo.add(b)
             _nuevas_imp.add(s)
         new_schema = schema_cols.union(_nuevas_imp)
-        if new_schema != schema_cols:
+        if ticket_format:
+            configure(pid, ticket_headers, manual_columns_list)
+            system_pk = 'Ticket ID'
+            db.session.commit()
+        elif not legacy_ticket_bridge and new_schema != schema_cols:
             if config_schema:
                 config_schema.valor = safe_json_dumps(list(new_schema))
             else:

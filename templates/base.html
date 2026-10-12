@@ -17,6 +17,7 @@
     <script src="/static/js/luxon.min.js?v=1"></script>
     <script src="/static/js/xlsx.full.min.js?v=1"></script>
     <script src="/static/js/chart.umd.min.js?v=1"></script>
+    <script src="/static/js/table-performance.js?v=1"></script>
     <link rel="stylesheet" href="/static/css/modus.css?v=1">
 </head>
 <body>
@@ -94,7 +95,12 @@
             </nav>
             <div class="sidebar-footer">
                 <div class="sidebar-user">
-                    <div class="user-avatar" style="background:#fff;"><img src="/static/img/cobra-logo.png" alt="Cobra" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"></div>
+                    {% if session.get('rol') in ['zeno', 'suport'] %}
+                    <button class="user-avatar" type="button" id="sidebar-logo-change" title="Cambiar logo de Modus" aria-label="Cambiar logo de Modus" style="background:#fff;border:0;padding:0;cursor:pointer;"><img src="{{ sidebar_logo_url }}" alt="Logo de Modus" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;"></button>
+                    <input id="sidebar-logo-file" type="file" accept="image/*" hidden>
+                    {% else %}
+                    <div class="user-avatar" style="background:#fff;"><img src="{{ sidebar_logo_url }}" alt="Logo de Modus" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;"></div>
+                    {% endif %}
                     <div class="sidebar-user-info">
                         <div style="font-size: 13px; font-weight: 700; color: var(--ios-label, #1C1C1E);">{{ session.get('username') }}</div>
                         <div style="font-size: 10px; color: var(--ios-gray-1, #8E8E93); text-transform: uppercase; letter-spacing: 0.4px;">{{ session.get('rol') }}</div>
@@ -188,7 +194,9 @@
     </script>
     <script src="{{ url_for('static', filename='js/api-response.js') }}?v=2"></script>
     <script src="{{ url_for('static', filename='js/catalogos-autocomplete.js') }}?v=1"></script>
+    <script src="{{ url_for('static', filename='js/column-filters.js') }}?v=1"></script>
     {% block scripts %}{% endblock %}
+    {% if session.get('rol') in ['zeno', 'suport'] %}<script src="{{ url_for('static', filename='js/branding.js') }}?v=1"></script>{% endif %}
 
     <!-- Bottom Nav Bar para móvil: se construye a partir del sidebar existente -->
     <script>
