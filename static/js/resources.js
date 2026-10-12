@@ -30,6 +30,8 @@
             if(key==='render'){runtime(item);details('render-details',[['Servicio',item.service],['Plan / región',[item.plan,item.region].filter(Boolean).join(' / ')||'—'],['Fuente RAM',m.scope],['Servicio actualizado',item.updatedAt?new Date(item.updatedAt).toLocaleString('es-PE'):'—']]);if(item.metrics_url)el('render-link').href=item.metrics_url;}
             else if(key==='neon')details('neon-details',[['Consulta + conexión',item.latency_ms==null?'—':`${item.latency_ms} ms`],['Conexiones de esta base',item.connections],['Fuente',item.status==='unavailable'?'Sin PostgreSQL':'PostgreSQL conectado']]);
             else details('b2-details',[['Bucket',item.bucket],['Archivos vigentes observados',item.files],['Versiones observadas',item.versions],['Cobertura',item.complete?'Inventario completo del bucket':partial?'Parcial (mínimo observado)':'No disponible']]);
+            if(key==='neon')details('neon-quick',[['Latencia',item.latency_ms==null?'—':`${item.latency_ms} ms`],['Conexiones',item.connections]]);
+            if(key==='b2')details('b2-quick',[['Archivos vigentes',item.files],['Versiones',item.versions]]);
             const source={render:'Render',neon:'Neon',b2:'B2'}[key];
             if(item.status==='error')findings.push({priority:0,source,title:'Falló la consulta',action:`${item.error} Tipo: ${item.error_type||'desconocido'}. Un fallo de consulta no confirma una caída del proveedor.`});
             else if(['unconfigured','unavailable'].includes(item.status))findings.push({priority:2,source,title:'Falta visibilidad',action:item.note});

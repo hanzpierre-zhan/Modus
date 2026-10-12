@@ -11,3 +11,30 @@
 .resources .resource-card[data-state=error] .metric{color:#e05050}.resources .resource-card[data-state=warn] .metric{color:#d97706}.dark-mode .resources .resource-card[data-state=warn] .metric{color:#ffc06b}
 .resources .runtime-metrics{display:grid;gap:16px;background:var(--ios-fill);border-radius:10px;padding:14px;margin-top:18px}.resources .runtime-label{display:block;font-size:12px;font-weight:600;color:var(--ios-secondary)}
 .resources .runtime-metrics strong{display:block;font-size:25px;letter-spacing:-.6px;margin-top:6px;color:var(--resource-color);font-variant-numeric:tabular-nums}.resources .runtime-metrics .track{margin-top:10px}.resources .runtime-metrics .muted{font-size:11px}
+
+/* Vista de operaciones: métricas arriba y tres desgloses en la misma pantalla. */
+.resources .service-details{position:relative;margin:12px 0;font-size:11px}
+.resources .service-details summary{font-weight:500;color:var(--ios-secondary)}
+.resources .service-details-body{padding:12px;background:var(--ios-card-bg);border:1px solid var(--rb);border-radius:8px}
+@media(min-width:1100px){
+  .resources{max-width:none;height:100%;min-height:650px;padding:16px 22px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:50px 44px minmax(260px,1.55fr) minmax(150px,1fr) 28px;gap:10px}
+  .resources-header,.resources .overview,.resources .resource-grid,.resources .help{grid-column:1/-1;margin:0}
+  .resources-header{flex-direction:row;align-items:center;gap:12px}
+  .resources-header .eyebrow{display:none}.resources h1{font-size:24px}.resources-header .muted{margin-top:3px;font-size:11px}
+  .resources .overview{padding:8px 12px;border-radius:9px}.resources .overview strong{font-size:12px}.resources .overview .muted{font-size:10px;margin-top:2px}
+  .resources .resource-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-height:0}
+  .resources .resource-card,.resources .panel{padding:14px;margin:0;min-height:0}
+  .resources .card-head{margin-bottom:12px}.resources .eyebrow{font-size:9px;margin-bottom:5px;letter-spacing:.8px}.resources h2{font-size:16px}
+  .resources .metric{font-size:28px}.resources .resource-card>.muted{font-size:11px;margin-top:4px}.resources .track{margin-top:10px}
+  .resources .runtime-metrics{grid-template-columns:1fr 1fr;gap:10px;padding:10px;margin-top:10px}.resources .runtime-label{font-size:11px}.resources .runtime-metrics strong{font-size:21px;margin-top:3px}
+  .resources .service-details{margin:10px 0}.resources .service-details[open] .service-details-body{position:absolute;top:22px;left:0;right:0;z-index:10;max-height:300px;overflow:auto;box-shadow:0 8px 24px #0004}
+  .resources .resource-card a{font-size:11px}.resources dl{margin:0 0 8px}
+  .resources .breakdown{display:contents}.resources .diagnostic-panel,.resources .breakdown>.panel{display:flex;flex-direction:column;overflow:hidden}
+  .resources .section-head{margin-bottom:8px;gap:6px}.resources .section-head>.muted{font-size:9px;margin-top:0}.resources .breakdown>.panel>.muted{font-size:10px;margin-top:4px}
+  .resources #findings{overflow:auto;min-height:0;scrollbar-width:thin}.resources .finding{grid-template-columns:52px 1fr;gap:8px;padding:8px 0;font-size:10px}.resources .finding strong{font-size:11px}.resources .finding p{line-height:1.4;margin-top:3px}.resources .finding .badge{font-size:9px;padding:4px 6px}
+  .resources .table-wrap{margin-top:10px;overflow:auto;min-height:0;scrollbar-width:thin}.resources table{font-size:10px}.resources td{padding:7px 0}.resources th{padding-bottom:7px;position:sticky;top:0;background:var(--ios-card-bg)}
+  .resources .help{padding:4px 10px;font-size:10px;position:relative}.resources .help[open]{z-index:20}.resources .help[open]>p{background:var(--ios-card-bg);padding:8px 12px;border:1px solid var(--rb);margin:0}
+}
+@media(max-width:1099px){.resources .service-details-body{margin-top:8px}.resources .runtime-metrics{grid-template-columns:1fr 1fr}.resources .table-wrap{max-height:260px}}
+
+.resources dl.quick-details{margin:12px 0 0}.resources dl.quick-details>div{padding:6px 0}
