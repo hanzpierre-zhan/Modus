@@ -5,7 +5,8 @@ from sqlalchemy import event
 from db import db
 from models import AppConfig,NucleusData
 
-def retired(field):
+def retired(field, source_task=False):
+    if source_task and field == 'Sla':return False
     return _retired_name(str(field or ''))
 
 @lru_cache(maxsize=512)
@@ -18,7 +19,8 @@ def clean_config(key,value):
     try:items=json.loads(value)
     except (ValueError,TypeError):return value
     if not isinstance(items,list):return value
-    cleaned=[item for item in items if not retired((item.get('nombre') or item.get('field')) if isinstance(item,dict) else item)]
+    source_task=any((item.get('field') if isinstance(item,dict) else item)=='Task Id' for item in items)
+    cleaned=[item for item in items if not retired((item.get('nombre') or item.get('field')) if isinstance(item,dict) else item, source_task)]
     return json.dumps(cleaned,ensure_ascii=False) if len(cleaned)!=len(items) else value
 
 def install():
@@ -30,8 +32,8 @@ def install():
             elif isinstance(row,NucleusData):
                 try:data=json.loads(row.data_json or '{}')
                 except (ValueError,TypeError):continue
-                if isinstance(data,dict) and any(retired(k) for k in data):
-                    row.data_json=json.dumps({k:v for k,v in data.items() if not retired(k)},ensure_ascii=False)
+                if isinstance(data,dict) and any(retired(k, 'Task Id' in data) for k in data):
+                    row.data_json=json.dumps({k:v for k,v in data.items() if not retired(k, 'Task Id' in data)},ensure_ascii=False)
     install.ready=True
 
 def clean_existing_config():

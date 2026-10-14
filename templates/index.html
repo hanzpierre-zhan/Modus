@@ -7436,7 +7436,7 @@
 
     const rawData = {{ data | safe }};
 
-    const rawCols = ({{ columns | safe }}).filter(c => !['SLA','SLA CUMPLIMIENTO'].includes(String(c).trim().toUpperCase()));
+    const rawCols = ({{ columns | safe }}).filter(c => ({{ (pk == 'Task Id') | tojson }} && c === 'Sla') || !['SLA','SLA CUMPLIMIENTO'].includes(String(c).trim().toUpperCase()));
 
     const manualColsConfig = {{ manual_cols | safe }};
 
@@ -7554,7 +7554,7 @@ let _rendCambiandoVista = false;
 
     const MANUAL_PROJECT = ['dataper', 'material', 'site name', 'generadores', 'combustible', 'cotizaciones'].includes(currentProjectNombre.trim().toLowerCase());
 
-    const pkName = "{{ 'Ticket ID (WO)' if pk == 'Ticket ID' and session.get('current_proyecto_nombre') == 'FLM - INTEGRATEL' else pk }}";
+    const pkName = "{{ (pk + ' (WO)') if pk in ['Ticket ID', 'Task Id'] and session.get('current_proyecto_nombre') == 'FLM - INTEGRATEL' else pk }}";
 
     const IS_FLM = currentProjectNombre.trim().toLowerCase() === 'flm - entel';
 

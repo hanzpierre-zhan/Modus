@@ -182,7 +182,7 @@ def index():
     manual_cols_data = json.loads(manual_cfg.valor) if manual_cfg else []
     from services.legacy_columns import retired
     manual_cols_data=[c for c in manual_cols_data if not retired(c.get('nombre'))]
-    columns_set={c for c in columns_set if not retired(c)}
+    columns_set={c for c in columns_set if not retired(c, 'Task Id' in columns_set)}
     for mc in manual_cols_data:
         columns_set.add(mc['nombre'])
 
@@ -352,6 +352,11 @@ def index():
     changed_keys_set = set(k for k, cnt in hist_counts if cnt > 1)
     changed_keys = sorted(changed_keys_set)
     
+    # Integratel Task: la grilla usa exclusivamente el exportable vigente y manuales.
+    # Los alias antiguos siguen disponibles para relaciones, nunca como columnas.
+    if proy_actual_nombre == 'FLM - INTEGRATEL' and 'Task Id' in columns_set:
+        from services.integratel_import import TASK_HEADERS
+        columns_set = set(TASK_HEADERS) | {mc['nombre'] for mc in manual_cols_data}
     cols = sorted(list(columns_set))
     if '_key' in cols: cols.remove('_key')
     cols.insert(0, '_key')
@@ -438,6 +443,8 @@ def index():
     # Layout de columnas definido por el admin (orden + visibilidad) para todos los usuarios.
     layout_cfg = AppConfig.query.filter_by(proyecto_id=pid, clave='column_layout').first()
     column_layout = json.loads(layout_cfg.valor) if layout_cfg and layout_cfg.valor else []
+    if proy_actual_nombre == 'FLM - INTEGRATEL' and 'Task Id' in columns_set:
+        column_layout = [entry for entry in column_layout if entry.get('field') in columns_set or entry.get('field') == '_key']
     # En Rendicion cada hoja guarda su propia vista: column_layout__depositos, etc.
     column_layout_vistas = {}
     try:

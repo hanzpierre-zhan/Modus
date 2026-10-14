@@ -4,6 +4,29 @@ import pandas as pd
 from db import db
 from models import AppConfig, Proyecto, NucleusData
 from services.integratel_import import HEADERS
+from services.integratel_import import TASK_HEADERS
+
+
+def test_task_format_replaces_ticket_schema_and_preserves_source_sla(app, auth_client):
+    pid = setup_project(app, auth_client)
+    row = dict.fromkeys(TASK_HEADERS, '')
+    row.update({'Task Id': 'CM-1', 'Task Status': 'completed', 'Createtime': '2026-09-14',
+                'Site Id Name': 'REAL FELIPE', 'Sla': '420', 'GESTION_PRUEBA': 'no pisar'})
+    response = upload(auth_client, [row])
+    assert response.status_code == 200, response.json
+    assert response.json['pk'] == 'Task Id'
+    with app.app_context():
+        data = json.loads(NucleusData.query.filter_by(proyecto_id=pid, key_value='CM-1').one().data_json)
+        assert data['Sla'] == '420'
+        assert data['Task Id'] == data['Número de WO'] == 'CM-1'
+        assert data['Nombre de Site'] == 'REAL FELIPE'
+        assert data['GESTION_PRUEBA'] == 'conservar'
+        assert json.loads(AppConfig.query.filter_by(proyecto_id=pid, clave='app_schema').one().valor) == TASK_HEADERS
+    legacy = upload(auth_client, [{'Número de WO': 'CM-1', 'Estado de la tarea (WO State)': 'accepted'}])
+    assert legacy.status_code == 200
+    with app.app_context():
+        data = json.loads(NucleusData.query.filter_by(proyecto_id=pid, key_value='CM-1').one().data_json)
+        assert data['Task Status'] == 'accepted'
 
 
 def setup_project(app, client, name='FLM - INTEGRATEL'):
@@ -75,3 +98,23 @@ def test_other_module_does_not_switch_to_ticket_schema(app, auth_client):
     assert response.status_code == 200, response.json
     with app.app_context():
         assert AppConfig.query.filter_by(proyecto_id=pid, clave='primary_key').one().valor == 'Número de WO'
+
+
+def test_task_grid_has_no_legacy_columns(app, auth_client):
+    from flask import template_rendered
+    pid = setup_project(app, auth_client)
+    row = dict.fromkeys(TASK_HEADERS, '')
+    row['Task Id'] = 'CM-1'
+    assert upload(auth_client, [row]).status_code == 200
+    contexts = []
+    def capture(sender, template, context, **kwargs): contexts.append(context)
+    template_rendered.connect(capture, app)
+    try:
+        response = auth_client.get('/')
+    finally:
+        template_rendered.disconnect(capture, app)
+    assert response.status_code == 200
+    columns = set(json.loads(contexts[-1]['columns']))
+    assert columns == set(TASK_HEADERS) | {'GESTION_PRUEBA', '_key'}
+    layout = json.loads(contexts[-1]['column_layout'])
+    assert all(item['field'] in columns for item in layout)
