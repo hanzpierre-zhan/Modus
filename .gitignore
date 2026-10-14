@@ -56,3 +56,5 @@ REPORTE FOTOGRAFICO _ CORRECTIVOS.xlsx
 
 # Static assets that are generated or local-only
 static/img/cobra-logo.png
+.venv-local/
+backups/

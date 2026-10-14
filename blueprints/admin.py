@@ -28,6 +28,7 @@ from services import *
 bp = Blueprint('admin', __name__)
 
 
+
 @bp.route('/api/branding/logo', methods=['GET', 'POST'])
 @login_required
 def branding_logo():
@@ -666,6 +667,9 @@ def api_rendicion_sync():
         'DEPOSITADO POR', 'SUSTENTADO POR', 'EDITADO POR',
         'RECHAZADO DESDE', 'VECES RECHAZADO', 'DEVUELTO POR',
         'FECHA DEVOLUCION', '_SUSTENTO_MARCAS',
+        'OBSERVADO POR', 'FECHA OBSERVACION', 'ARCHIVADO POR', 'FECHA ARCHIVO',
+        'DESARCHIVADO POR', 'FECHA DESARCHIVO', '_HISTORIAL_FLUJO',
+        '_RECHAZO_ETAPA', 'ANULADO DESDE', 'ANULADO POR', 'FECHA ANULACION',
     }
 
     # Esquema DINÁMICO: las columnas del grid del form son exactamente las que
@@ -832,7 +836,9 @@ def api_rendicion_sync_sustentos():
             continue
             
         estado_actual = str(target_dict.get('ESTADO', '')).strip().upper()
-        if estado_actual not in ('DEPOSITADO', 'CON SUSTENTO'):
+        from blueprints.rendicion import _etapa_de
+        rechazo_evidencia = estado_actual == 'RECHAZADO' and _etapa_de(target_dict) == 'EVIDENCIA'
+        if estado_actual not in ('DEPOSITADO', 'CON SUSTENTO', 'OBSERVADO') and not rechazo_evidencia:
             omitidos += 1
             continue
 
@@ -860,7 +866,7 @@ def api_rendicion_sync_sustentos():
                 target_dict[col] = str(v).strip()
                 nuevas_sustento.add(col)
 
-        if estado_actual == 'DEPOSITADO':
+        if estado_actual == 'DEPOSITADO' or rechazo_evidencia:
             target_dict['ESTADO'] = 'CON SUSTENTO'
         if marca_actual:
             procesadas.add(marca_actual)
@@ -1008,11 +1014,10 @@ def api_admin_cotizacion_lista():
     return jsonify({'registros': resultado, 'total': len(resultado)})
 
 
-# ── Salud / Health Dashboard ──────────────────────────────────────────────
+# Infraestructura: panel compacto, restringido a administración.
 @bp.route('/salud')
 @login_required
 def salud_panel():
-    """Panel de salud de la plataforma (solo zeno/suport)."""
     if session.get('rol') not in ('zeno', 'suport'):
         return redirect(url_for('pages.index'))
     from services.utilidades import get_menu_proyectos
@@ -1023,10 +1028,8 @@ def salud_panel():
 @bp.route('/api/salud')
 @login_required
 def api_salud():
-    """Datos en tiempo real para el panel de salud."""
     if session.get('rol') not in ('zeno', 'suport'):
         return jsonify({'error': 'No autorizado'}), 403
-
     from services.resources import snapshot
     response = jsonify(snapshot())
     response.headers['Cache-Control'] = 'no-store'

@@ -1,0 +1,35 @@
+{
+  "fecha": "2026-10-14T09:52:24.325413",
+  "origen": "C:\\Mega\\Proyect\\Nucleus",
+  "destino": "C:\\Mega\\Proyect\\Modus",
+  "archivos_actualizados": 110,
+  "respaldo": "C:\\Mega\\Proyect\\Modus\\backups\\replica-nucleus-20261014-095223",
+  "registros_antes": {
+    "Cotizaciones": 2,
+    "FLM - INTEGRATEL": 5577,
+    "Rendicion": 53
+  },
+  "archivos_especificos_preservados": [
+    "blueprints/auth.py",
+    "blueprints/imports.py",
+    "blueprints/wo.py",
+    "migrations/__init__.py",
+    "services/utilidades.py",
+    "tests/conftest.py"
+  ],
+  "verificacion_datos": {
+    "registros": 5632,
+    "registros_y_usuarios_iguales_al_respaldo": true
+  },
+  "validacion": {
+    "suite_general": 189,
+    "pruebas_dashboard_y_funciones_modus": 19,
+    "bloques_javascript_renderizados": 41,
+    "dashboard_integratel": {
+      "total": 5577,
+      "close": 1987
+    },
+    "scroll_horizontal": "verificado",
+    "entorno_local": ".venv-local/Python 3.12"
+  }
+}

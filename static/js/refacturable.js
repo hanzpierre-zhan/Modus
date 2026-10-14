@@ -25,7 +25,7 @@
         if (definition.headerFilter !== false) header.appendChild(filter);
         if (manualFields.has(definition.field)) {
             const edit = document.createElement('i'); edit.className = 'fa-solid fa-pen-to-square ref-edit-icon';
-            edit.title = 'Campo manual: editar desde Acciones'; header.appendChild(edit);
+            edit.title = 'Campo manual: editar desde N° COTIZACIÓN'; header.appendChild(edit);
         }
         const label = document.createElement('span'); label.textContent = definition.title; header.appendChild(label);
         return header;
@@ -68,6 +68,17 @@
         return button;
     }
     document.getElementById('liq-sustento-close').addEventListener('click', () => document.getElementById('liq-sustento').close());
+    function quoteFormatter(cell) {
+                const link = document.createElement('a'); link.href = '#ref-editor';
+                link.className = 'ref-quote-link'; link.textContent = cell.getValue();
+                link.title = 'Abrir datos manuales de esta cotización';
+                link.setAttribute('aria-label', `Datos manuales de la cotización ${cell.getValue()}`);
+                link.addEventListener('click', event => {
+                    event.preventDefault();
+                    openEditor(cell.getRow().getData());
+                });
+                return link;
+    }
     const table = new Tabulator('#ref-grid', {
         layout: 'fitData', rowHeight: 44,
         movableColumns: true,
@@ -79,14 +90,8 @@
         placeholder: 'No hay cotizaciones aprobadas para mostrar.',
         columnDefaults: {vertAlign: 'middle'},
         columns: [
-            column('N', 'correlativo', {width: 85, minWidth: 65}),
-            {title: 'EDITAR', field: '_editar', width: 150, headerSort: false, formatter: () => {
-                const button = document.createElement('button');
-                button.type = 'button'; button.className = 'action-pill pill-blue';
-                button.textContent = 'Datos manuales'; button.title = 'Editar liquidación';
-                return button;
-            }, cellClick: (event, cell) => openEditor(cell.getRow().getData())},
-            column('N° COTIZACIÓN', 'cotizacion', {width: 185}),
+            column('N', 'correlativo', {width: 140, minWidth: 130}),
+            column('N° COTIZACIÓN', 'cotizacion', {width:185, formatter: quoteFormatter}),
             column('ESTADO DE COTIZACIÓN', 'estado_cotizacion', {width: 185, formatter: statusFormatter}),
             column('TIPO DE GASTO', 'tipo_gasto', {width: 160}),
             column('GESTOR OPERATIVO', 'gestor'),
@@ -181,5 +186,8 @@
         XLSX.writeFile(book, 'Liquidaciones.xlsx');
     });
     table.on('dataFiltered', updateCount); table.on('pageLoaded', updateCount);
-    table.on('tableBuilt', load);
+    table.on('tableBuilt', async () => {
+        await table.getColumn('cotizacion').updateDefinition({formatter: quoteFormatter});
+        await load();
+    });
 })();

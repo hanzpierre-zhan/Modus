@@ -763,14 +763,15 @@ def _avisar_cambio_estado(proyecto_id, key, anterior, row, usuario):
     if nuevo == anterior:
         return
     from blueprints.rendicion import _crear_aviso
-    colores = {'En Aprobación': '#FF9500', 'Aprobado': '#007AFF',
-               'Atendido': '#34C759', 'Cancelado': '#FF3B30'}
-    site = str(row.get('NOMBRE SITE') or '').strip()
+    colores = {'En Aprobación': '#FF9500', 'Aprobado': '#173E76',
+               'Cotizado': '#173E76', 'Atendido': '#34C759', 'Validado': '#34C759',
+               'Observado': '#FF9500', 'Rechazado': '#FF3B30', 'Cancelado': '#FF3B30'}
+    site = str(row.get('NOMBRE SITE') or row.get('SITE') or row.get('NOMBRE DE SITE') or '').strip()
     texto = '%s cambió la cotización %s de %s a %s%s' % (
         usuario, key, anterior or 'Registro', nuevo,
         (' — ' + site) if site else '')
     _crear_aviso(proyecto_id, 'cotizacion_estado', texto,
-                 colores.get(nuevo, '#AF52DE'), usuario)
+                 colores.get(nuevo, '#173E76'), usuario)
 
 ESTADOS_FLUJO = (ESTADO_NUEVO, ESTADO_COTIZADO, ESTADO_APROBACION, ESTADO_SUSTENTO, ESTADO_ATENDIDO)
 
@@ -941,6 +942,8 @@ def api_cotizacion_accion():
         # La aprobación registra el ingreso a Liquidaciones en la misma transacción.
         # Se conserva para seguir el caso aunque después se revierta o cancele.
         row.setdefault('_LIQUIDACION_INGRESO', ahora)
+        from services.liquidacion_numero import numero_liquidacion
+        numero_liquidacion(fila.id)
         from models import RefacturableDetalle
         detalle = db.session.get(RefacturableDetalle, fila.id)
         if detalle is None:

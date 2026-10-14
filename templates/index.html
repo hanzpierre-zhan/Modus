@@ -58,19 +58,23 @@
 
         <button type="button" class="rend-tab" data-vista="rendicion" onclick="rendCambiarVista('rendicion')">
 
-            <i class="fa-solid fa-file-invoice-dollar"></i> Rendición <span class="rend-badge" id="rend-cnt-sustentos">0</span>
+            <i class="fa-solid fa-file-invoice-dollar"></i> Sustento <span class="rend-badge" id="rend-cnt-sustentos">0</span>
 
         </button>
 
-        <button type="button" class="rend-tab" data-vista="rechazados" onclick="rendCambiarVista('rechazados')">
+        <button type="button" class="rend-tab" data-vista="observado" onclick="rendCambiarVista('observado')"><i class="fa-solid fa-triangle-exclamation"></i> Observado <span class="rend-badge" id="rend-cnt-observado">0</span></button>
 
-            <i class="fa-solid fa-ban"></i> Rechazados <span class="rend-badge" id="rend-cnt-rechazados">0</span>
 
-        </button>
 
         <button type="button" class="rend-tab" data-vista="cerrado" onclick="rendCambiarVista('cerrado')">
 
-            <i class="fa-solid fa-check-double"></i> Cerrado <span class="rend-badge" id="rend-cnt-cerrado">0</span>
+            <i class="fa-solid fa-check-double"></i> Atendido <span class="rend-badge" id="rend-cnt-cerrado">0</span>
+
+        </button>
+        <button type="button" class="rend-tab" data-vista="archivado" onclick="rendCambiarVista('archivado')"><i class="fa-solid fa-box-archive"></i> Archivar <span class="rend-badge" id="rend-cnt-archivado">0</span></button>
+        <button type="button" class="rend-tab" data-vista="rechazados" onclick="rendCambiarVista('rechazados')">
+
+            <i class="fa-solid fa-ban"></i> Anulado <span class="rend-badge" id="rend-cnt-rechazados">0</span>
 
         </button>
 
@@ -304,9 +308,9 @@
 
         <button type="button" id="btn-rend-avisos" class="action-pill" onclick="rendAvisosToggle()"
 
-            title="Avisos del flujo" style="position:relative;">
+            title="Avisos de {{ 'Cotizaciones' if proy_nombre == 'cotizaciones' else 'Rendición' }}" style="position:relative;">
 
-            <i class="fa-solid fa-bell"></i><span class="pill-txt"> Avisos del flujo</span>
+            <i class="fa-solid fa-bell"></i><span class="pill-txt"> Avisos de {{ 'Cotizaciones' if proy_nombre == 'cotizaciones' else 'Rendición' }}</span>
 
             <span id="rend-avisos-badge" style="display:none; position:absolute; top:-7px; right:-7px;
 
@@ -320,7 +324,7 @@
 
             width:370px; max-height:60vh; overflow-y:auto; z-index:9999;">
 
-            <div class="rend-aviso-head"><i class="fa-solid fa-bell"></i> Avisos del flujo</div>
+            <div class="rend-aviso-head"><i class="fa-solid fa-bell"></i> Avisos de {{ 'Cotizaciones' if proy_nombre == 'cotizaciones' else 'Rendición' }}</div>
 
             <div id="rend-avisos-lista"></div>
 
@@ -432,7 +436,7 @@
 
             <div id="admin-coti-next-top" class="coti-gear-next">
 
-                <div class="coti-gear-next-top">Próximo: HW-<span id="top-next-year"></span>-</div>
+                <div class="coti-gear-next-top">Próximo: EN / CL / IN-<span id="top-next-year"></span>-</div>
 
                 <div class="coti-gear-next-row">
 
@@ -784,10 +788,12 @@
 
     .rend-tab[data-vista="evidencia"]  { --tab-c: #FFCC00; --tab-bg: #FFF7DA; }
 
-    .rend-tab[data-vista="rendicion"]  { --tab-c: #AF52DE; --tab-bg: #F6EBFC; }
+    .rend-tab[data-vista="rendicion"]  { --tab-c: #173E76; --tab-bg: #F6EBFC; }
 
     .rend-tab[data-vista="rechazados"] { --tab-c: #FF3B30; --tab-bg: #FFECEB; }
 
+    .rend-tab[data-vista="observado"] { --tab-c: #D97706; --tab-bg: #FFF3DF; }
+    .rend-tab[data-vista="archivado"] { --tab-c: #64748B; --tab-bg: #E8EDF3; }
     .rend-tab[data-vista="cerrado"]    { --tab-c: #8E8E93; --tab-bg: #F0F0F3; }
 
     /* Tema oscuro: los tintes claros no se leen, van translúcidos sobre el fondo */
@@ -798,10 +804,12 @@
 
     body.dark-mode .rend-tab[data-vista="evidencia"]  { --tab-bg: rgba(255,204,0,.20); }
 
-    body.dark-mode .rend-tab[data-vista="rendicion"]  { --tab-bg: rgba(175,82,222,.26); }
+    body.dark-mode .rend-tab[data-vista="rendicion"]  { --tab-bg: rgba(23,62,118,.26); }
 
     body.dark-mode .rend-tab[data-vista="rechazados"] { --tab-bg: rgba(255,59,48,.24); }
 
+    body.dark-mode .rend-tab[data-vista="observado"] { --tab-bg: rgba(217,119,6,.2); }
+    body.dark-mode .rend-tab[data-vista="archivado"] { --tab-bg: rgba(100,116,139,.2); }
     body.dark-mode .rend-tab[data-vista="cerrado"]    { --tab-bg: rgba(142,142,147,.26); }
 
     body.dark-mode .rend-tab { color: var(--ios-label, #E5E5EA); }
@@ -844,7 +852,7 @@
 
         display: inline-flex; align-items: center; gap: 5px;
 
-        background: #AF52DE; color: #fff; border: none; border-radius: 7px;
+        background: #173E76; color: #fff; border: none; border-radius: 7px;
 
         padding: 3px 9px; font-size: 11px; font-weight: 700; cursor: pointer;
 
@@ -1280,7 +1288,7 @@
 
     .rend-btn-dep { background: linear-gradient(135deg,#007AFF,#005ecb); }
 
-    .rend-btn-sus { background: linear-gradient(135deg,#AF52DE,#8e3ab8); }
+    .rend-btn-sus { background: linear-gradient(135deg,#173E76,#12305D); }
 
     .rend-btn-mini { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 600; box-shadow: none; }
 
@@ -1811,7 +1819,7 @@
     #modal-add-registro .cot-items-mode .mar-field label{text-transform:none!important;letter-spacing:0!important;font-size:12px!important;color:var(--ios-secondary)!important}
     #modal-add-registro .cot-items-mode :focus-visible{outline:2px solid var(--ios-blue);outline-offset:3px}
     body.light #modal-add-registro .cot-items-mode #btn-mar-plantilla-coti{color:#2563EB!important}
-    body.light #modal-add-registro .cot-items-mode #btn-mar-importar-coti{color:#7C3AED!important}
+    body.light #modal-add-registro .cot-items-mode #btn-mar-importar-coti{color:#173E76!important}
     body.light #modal-add-registro .cot-items-mode #btn-mar-generar-coti{color:#A16207!important}
     @media(max-width:760px){ #modal-add-registro .cot-items-mode .mar-header{flex-wrap:wrap;gap:14px}.cot-items-editor{padding:12px}}
 
@@ -5094,7 +5102,7 @@
 
         margin-left: auto;
 
-        background: linear-gradient(135deg, var(--ios-blue), #5856D6);
+        background: linear-gradient(135deg, var(--ios-blue), #173E76);
 
         border: none;
 
@@ -5939,7 +5947,7 @@
     .cot-btn-rev    { background: linear-gradient(135deg,#FF9500,#e07f00); }
     .cot-btn-cancel { background: linear-gradient(135deg,#6B7280,#4b5563); }
     .cot-btn-done   { background: linear-gradient(135deg,#28A745,#1e8a38); font-size:16px; padding: 3px 6px; }
-    .cot-btn-atend  { background: linear-gradient(135deg,#AF52DE,#8e3ab8); }
+    .cot-btn-atend  { background: linear-gradient(135deg,#173E76,#12305D); }
     #cot-tabs .rend-tab{min-height:34px;border-radius:9px}
     .cot-btn{min-width:32px;min-height:30px;border-radius:8px;box-shadow:none;transition:background .15s,border-color .15s}
     .cot-btn-gen,.cot-btn-ok,.cot-btn-sus,.cot-btn-sus-atendido,.cot-btn-atend{background:var(--ios-fill);color:var(--ios-blue);border:1px solid var(--ios-hairline)}
@@ -6811,7 +6819,7 @@
 
                                 <div class="wo-coti-numero">
 
-                                    <span class="wo-coti-prefix">HW-</span>
+                                    <span class="wo-coti-prefix">EN-</span>
 
                                     <input type="text" id="wo-coti-numero" class="wo-coti-num-input wo-coti-num-digits"
 
@@ -6977,7 +6985,7 @@
 
                                 <div class="wo-coti-numero">
 
-                                    <span class="wo-coti-prefix">HW-</span>
+                                    <span class="wo-coti-prefix">EN-</span>
 
                                     <input type="text" id="wo-coti-numero" class="wo-coti-num-input wo-coti-num-digits"
 
@@ -7172,6 +7180,8 @@
                 <div class="wo-section">
 
                     <div class="wo-section-title"><i class="fa-solid fa-camera"></i> Evidencia fotográfica
+
+                        <button type="button" id="btn-evidencia-zip" class="action-pill pill-neutral evidencia-download" onclick="descargarEvidenciaZip()" title="Descargar las fotos de inicio, proceso y cierre de esta WO"><i class="fa-solid fa-download"></i> Descargar fotos</button>
 
 
                         <button type="button" id="btn-evidencia-xlsx" class="wo-zip-btn" onclick="descargarReporteFotografico()" title="Descargar el reporte fotográfico en Excel con las fotos en su sitio" style="display:none;"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button>
@@ -7526,7 +7536,7 @@ let _rendCambiandoVista = false;
 
                     cotiNextSeqConfig=v;
 
-                    nucleusAlert('Próximo correlativo guardado: HW-'+new Date().getFullYear()+'-'+String(v).padStart(7,'0'));
+                    nucleusAlert('Próximo correlativo guardado: EN / CL / IN-'+new Date().getFullYear()+'-'+String(v).padStart(7,'0'));
 
                 }catch(e){ nucleusAlert(e.message||'Error'); }
 
@@ -7544,7 +7554,7 @@ let _rendCambiandoVista = false;
 
     const MANUAL_PROJECT = ['dataper', 'material', 'site name', 'generadores', 'combustible', 'cotizaciones'].includes(currentProjectNombre.trim().toLowerCase());
 
-    const pkName = "{{ pk }}";
+    const pkName = "{{ 'Ticket ID (WO)' if pk == 'Ticket ID' and session.get('current_proyecto_nombre') == 'FLM - INTEGRATEL' else pk }}";
 
     const IS_FLM = currentProjectNombre.trim().toLowerCase() === 'flm - entel';
 
@@ -7570,7 +7580,10 @@ let _rendCambiandoVista = false;
 
         'SUSTENTADO': { bg: '#28A745', fg: '#fff' },
 
-        'RECHAZADO':  { bg: '#FF3B30', fg: '#fff' }
+        'RECHAZADO':  { bg: '#FF3B30', fg: '#fff' },
+        'ANULADO': {bg:'#64748B',fg:'#fff'},
+        'OBSERVADO': { bg: '#D97706', fg: '#fff' },
+        'ARCHIVADO': { bg: '#64748B', fg: '#fff' }
 
     };
 
@@ -7580,7 +7593,8 @@ let _rendCambiandoVista = false;
 
     const REND_COLS_OCULTAS = new Set([
 
-        'RECHAZADO DESDE', 'VECES RECHAZADO', 'DEVUELTO POR', 'FECHA DEVOLUCION'
+        'RECHAZADO DESDE', 'VECES RECHAZADO', 'DEVUELTO POR', 'FECHA DEVOLUCION',
+        'OBSERVADO POR','FECHA OBSERVACION','ARCHIVADO POR','FECHA ARCHIVO','DESARCHIVADO POR','FECHA DESARCHIVO','ANULADO DESDE','ANULADO POR','FECHA ANULACION'
 
     ]);
 
@@ -7594,6 +7608,14 @@ let _rendCambiandoVista = false;
 
         return v || 'PENDIENTE';
 
+    }
+
+    // Estado visible y etapa son distintos para los rechazos que retornan.
+    function rendEstadoParaVista(row) {
+        const estado = rendEstadoDe(row);
+        if (estado !== 'RECHAZADO') return estado;
+        const destino = row._RECHAZO_ETAPA || ({'VALIDADO':'VALIDACION','DEPOSITADO':'EVIDENCIA','CON SUSTENTO':'EVIDENCIA','OBSERVADO':'EVIDENCIA'}[String(row['RECHAZADO DESDE'] || '').trim().toUpperCase()]);
+        return destino === 'VALIDACION' ? 'PENDIENTE' : destino === 'EVIDENCIA' ? 'DEPOSITADO' : 'ANULADO';
     }
 
     // Botones del flujo: solo si el usuario tiene asignado el módulo Rendicion.
@@ -7673,6 +7695,9 @@ let _rendCambiandoVista = false;
 
                        showCols: ['_evidencia_btn'] },
 
+        observado: { estados: ['OBSERVADO'], cols: null, hidePrefijos: ['SUSTENTO_'], showCols: ['OBSERVACIONES','_evidencia_btn','_accion'] },
+        archivado: { estados: ['ARCHIVADO'], cols: null, hidePrefijos: ['SUSTENTO_'], showCols: ['_evidencia_btn','_accion'] },
+
         // Cerrado: Todo completo
 
         cerrado:     { estados: ['SUSTENTADO'],
@@ -7685,7 +7710,7 @@ let _rendCambiandoVista = false;
 
         // Rechazados:
 
-        rechazados:  { estados: ['RECHAZADO'],
+        rechazados:  { estados: ['ANULADO'],
 
                        cols: null,
 
@@ -7751,7 +7776,7 @@ let _rendCambiandoVista = false;
 
         'En Aprobación':   { bg: '#FF9500', fg: '#fff' },   /* naranja        */
 
-        'En proceso':      { bg: '#AF52DE', fg: '#fff' },   /* violeta        */
+        'En proceso':      { bg: '#173E76', fg: '#fff' },   /* violeta        */
 
         'Observado':       { bg: '#FF6B00', fg: '#fff' },   /* naranja quemado*/
 
@@ -7811,7 +7836,7 @@ let _rendCambiandoVista = false;
 
         'accepted':    { bg: "var(--ios-accent)", fg: "var(--ios-accent)", iconText: 'A' },
 
-        'dispatched':  { bg: '#AF52DE', fg: '#AF52DE', iconText: 'D' },
+        'dispatched':  { bg: '#173E76', fg: '#173E76', iconText: 'D' },
 
         'inprocess':   { bg: '#FF9500', fg: '#FF9500', iconText: 'I' },
 
@@ -7829,7 +7854,7 @@ let _rendCambiandoVista = false;
 
     const OPERATE_PHASE_COLORS = {
 
-        'dispatch': { bg: '#AF52DE', fg: '#AF52DE', iconText: 'D' },
+        'dispatch': { bg: '#173E76', fg: '#173E76', iconText: 'D' },
 
         'accept':   { bg: '#007AFF', fg: '#007AFF', iconText: 'A' },
 
@@ -8015,7 +8040,7 @@ let _rendCambiandoVista = false;
 
         if (hasProyecto) {
 
-            cards.push(['#5856D6', 'fa-helmet-safety', 'FLM', flm]);
+            cards.push(['#173E76', 'fa-helmet-safety', 'FLM', flm]);
 
             cards.push(['#14B8A6', 'fa-satellite-dish', 'PEXT', pext]);
 
@@ -8129,7 +8154,7 @@ let _rendCambiandoVista = false;
 
         const cards = [];
 
-        cards.push(['#5856D6', 'fa-gas-pump', 'TOTAL', `${totalIngresado.toFixed(1)} gal`, 'GALONES REGISTRADOS']);
+        cards.push(['#173E76', 'fa-gas-pump', 'TOTAL', `${totalIngresado.toFixed(1)} gal`, 'GALONES REGISTRADOS']);
 
         cards.push(['#FF3B30', 'fa-fire', 'GASTADO', `${totalGastado.toFixed(1)} gal`, 'TOTAL GASTADO']);
 
@@ -8231,9 +8256,9 @@ let _rendCambiandoVista = false;
 
             { key: 'pm',       tipo: 'tipo-wo',  label: 'PM',       color: '#007AFF', icon: 'fa-screwdriver-wrench'  },
 
-            { key: 'plm',      tipo: 'tipo-wo',  label: 'PLM',      color: '#5856D6', icon: 'fa-bolt'                },
+            { key: 'plm',      tipo: 'tipo-wo',  label: 'PLM',      color: '#3266A8', icon: 'fa-bolt'                },
 
-            { key: 'dispatch', tipo: 'wo-state', label: 'Dispatch', color: '#AF52DE', icon: 'fa-paper-plane'         },
+            { key: 'dispatch', tipo: 'wo-state', label: 'Dispatch', color: '#5486C6', icon: 'fa-paper-plane'         },
 
             { key: 'accept',   tipo: 'wo-state', label: 'Accept',   color: '#007AFF', icon: 'fa-check-double'        },
 
@@ -8830,7 +8855,7 @@ let _rendCambiandoVista = false;
 
         expBtn.title = "Expandir/contraer todo";
 
-        expBtn.style.cssText = btnBase + "background:#5856d6;color:white;width:34px;";
+        expBtn.style.cssText = btnBase + "background:#173E76;color:white;width:34px;";
 
         headerActions.appendChild(applyBtn);
 
@@ -9366,9 +9391,9 @@ let _rendCambiandoVista = false;
 
         if (fieldName === "_key") {
 
-            colDef.frozen = true;
+            colDef.frozen = false;
 
-            colDef.title = "<i class='fa-solid fa-key' style='color:var(--ios-blue); font-size:10px; opacity:0.8;'></i> {{ 'Ticket ID (WO)' if pk == 'Ticket ID' and session.get('current_proyecto_nombre') == 'FLM - INTEGRATEL' else pk }}";
+            colDef.title = "<i class='fa-solid fa-key' style='color:var(--ios-blue); font-size:10px; opacity:0.8;'></i> {{ pk }}";
 
             colDef.cssClass = "key-column";
 
@@ -9433,6 +9458,18 @@ let _rendCambiandoVista = false;
 
 
 
+        // Auxiliares vacíos de Integratel: disponibles en Columnas sin ocupar la vista inicial.
+        if (currentProjectNombre.trim().toLowerCase() === 'flm - integratel' &&
+            ['DIRECCION', 'GESTOR', 'LATITUD', 'LONGITUD'].includes(fieldName) &&
+            !layoutVisibleMap.has(fieldName) &&
+            !rawData.some(row => String(row[fieldName] ?? '').trim())) {
+            colDef.visible = false;
+        }
+
+        // Rendición: las columnas internas (_SUSTENTO_MARCAS, rastros de la hoja
+
+        // de rechazo) quedan ocultas por defecto: no estorban el flujo.
+
         // Manual columns ocultas por defecto cuando la tabla tiene muchas columnas importadas.
 
         // Excepción: TECNICO ASIGNADO siempre se muestra (FLM).
@@ -9449,14 +9486,6 @@ let _rendCambiandoVista = false;
 
             colDef.visible = layoutVisibleMap.get(fieldName);
 
-        }
-
-        // Auxiliares vacíos de Integratel: disponibles en Columnas sin ocupar la vista inicial.
-        if (currentProjectNombre.trim().toLowerCase() === 'flm - integratel' &&
-            ['DIRECCION', 'GESTOR', 'LATITUD', 'LONGITUD'].includes(fieldName) &&
-            !layoutVisibleMap.has(fieldName) &&
-            !rawData.some(row => String(row[fieldName] ?? '').trim())) {
-            colDef.visible = false;
         }
 
         // Rendición: las columnas internas (_SUSTENTO_MARCAS, rastros de la hoja
@@ -9487,7 +9516,7 @@ let _rendCambiandoVista = false;
 
             colDef.hozAlign = "center";
 
-            colDef.frozen = true;
+            colDef.frozen = false;
 
             kpiColumns.push(colDef);
 
@@ -9879,7 +9908,7 @@ let _rendCambiandoVista = false;
 
                 colDef.editor = false; // la gestiona el flujo, no se edita a mano
 
-                colDef.headerFilter = listaHeaderFilter(manualDef ? manualDef.opciones : []);
+                colDef.headerFilter = listaHeaderFilter(Object.keys(REND_ESTADO_COLORS));
 
                 colDef.formatter = function (cell) {
 
@@ -9923,7 +9952,7 @@ let _rendCambiandoVista = false;
 
                     if (!n) return '';
 
-                    return `<span style="color:#AF52DE;font-weight:700;cursor:pointer;" title="Ver foto(s)">
+                    return `<span style="color:#173E76;font-weight:700;cursor:pointer;" title="Ver foto(s)">
 
                         <i class="fa-solid fa-camera"></i> ${n}</span>`;
 
@@ -10660,11 +10689,11 @@ let _rendCambiandoVista = false;
 
         minWidth: 40,
 
-        maxWidth: 40,
 
-        resizable: false,
 
-        frozen: true,
+        resizable: true,
+
+        frozen: false,
 
         headerHozAlign: "center",
 
@@ -10698,11 +10727,11 @@ let _rendCambiandoVista = false;
 
             minWidth: 56,
 
-            maxWidth: 56,
 
-            resizable: false,
 
-            frozen: true,
+            resizable: true,
+
+            frozen: false,
 
             headerSort: false,
 
@@ -10758,9 +10787,9 @@ let _rendCambiandoVista = false;
 
             // Columna flexible: el ancho y el orden se guardan en el layout.
 
-            width: 200,
+            width: 300,
 
-            minWidth: 96,
+            minWidth: 280,
 
             resizable: true,
 
@@ -10817,132 +10846,25 @@ let _rendCambiandoVista = false;
 
 
 
-                if (est === 'PENDIENTE') {
-
-                    mk('rend-btn-ok', '✓', 'Validar solicitud -> pasa a Depósitos',
-
-                       () => rendValidar(key));
-
-                    mk('rend-btn-no', '✕', 'Rechazar con motivo',
-
-                       () => rendAbrirRechazo(key));
-
-                } else if (est === 'VALIDADO') {
-
-                    mk('rend-btn-dep', '<i class="fa-solid fa-money-bill-transfer"></i>',
-
-                       'Registrar fecha, monto y foto del pago (Depositar)',
-
-                       () => rendAbrirDeposito(key));
-
-                    mk('rend-btn-no', '✕', 'Rechazar con motivo',
-
-                       () => rendAbrirRechazo(key));
-
-                    if (puedeRev) {
-
-                        mk('rend-btn-rev rend-btn-mini', '↺', 'Regresar a Pendiente', () => rendRevertir(key));
-
-                    }
-
-                } else if (est === 'DEPOSITADO') {
-
-                    const chk = document.createElement('span');
-
-                    chk.className = 'rend-btn-done rend-pill rend-pill-pdte';
-
-                    chk.title = 'Pendiente de sustentar en Google Sheet';
-
-                    chk.innerHTML = '<i class="fa-solid fa-clock"></i>';
-
-                    wrap.appendChild(chk);
-
-                    mk('rend-btn-no', '✕', 'Rechazar: vuelve a Depósitos para corregir',
-
-                       () => rendAbrirRechazo(key));
-
-                    if (puedeRev) {
-
-                        mk('rend-btn-rev rend-btn-mini', '↺', 'Regresar a Validado', () => rendRevertir(key));
-
-                    }
-
-                } else if (est === 'CON SUSTENTO') {
-
-                    mk('rend-btn-sus', '★', 'Subir fotos adicionales o cerrar la solicitud (Sustentar)',
-
-                       () => rendAbrirSustento(key));
-
-                    mk('rend-btn-no', '✕', 'Rechazar: la solicitud vuelve a Evidencia para revisión',
-
-                       () => rendAbrirRechazo(key));
-
-                    if (puedeRev) {
-
-                        mk('rend-btn-rev rend-btn-mini', '↺', 'Regresar a Depositado', () => rendRevertir(key));
-
-                    }
-
-                } else if (est === 'SUSTENTADO') {
-
-                    const chk = document.createElement('span');
-
-                    chk.className = 'cot-btn cot-btn-done';
-
-                    chk.title = 'Completado - Sustentado';
-
-                    chk.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-
-                    wrap.appendChild(chk);
-
-                    if (puedeRev) {
-
-                        mk('rend-btn-rev rend-btn-mini', '↺', 'Regresar a Rendición (CON SUSTENTO)', () => rendRevertir(key));
-
-                    }
-
-                } else if (est === 'RECHAZADO') {
-
-                    const chk = document.createElement('span');
-
-                    chk.className = 'rend-btn-done rend-pill rend-pill-rech';
-
-                    chk.title = 'Rechazado';
-
-                    chk.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
-
-                    wrap.appendChild(chk);
-
-                    // Volver a la hoja anterior (según de dónde vino el rechazo)
-
-                    // para corregir el pedido y que el flujo avance.
-
-                    const fuente = String(row['RECHAZADO DESDE'] || '').trim().toUpperCase();
-
-                    const destLabel = {
-
-                        'VALIDADO': 'Validación',
-
-                        'DEPOSITADO': 'Depósitos',
-
-                        'CON SUSTENTO': 'Evidencia'
-
-                    }[fuente];
-
-                    if (destLabel) {
-
-                        mk('rend-btn-rev rend-btn-mini', '↩',
-
-                           'Devolver a ' + destLabel + ' para corregir (el rechazo en Validación es definitivo)',
-
-                           () => rendDevolver(key));
-
-                    } else if (puedeRev) {
-
-                        mk('rend-btn-rev rend-btn-mini', '↺', 'Regresar a Pendiente', () => rendRevertir(key));
-
-                    }
-
+                const etapa = rendEstadoParaVista(row);
+                if (etapa === 'PENDIENTE') {
+                    mk('rend-btn-ok', 'Validar', 'Validar solicitud y pasar a Depósitos', () => rendValidar(key));
+                    mk('rend-btn-no', 'Anular', 'Anular solicitud', () => rendAnular(key));
+                } else if (etapa === 'VALIDADO') {
+                    mk('rend-btn-dep', 'Registrar depósito', 'Registrar depósito', () => rendAbrirDeposito(key));
+                    mk('rend-btn-no', 'Rechazado', 'Rechazar y regresar a Validación', () => rendAbrirRechazo(key));
+                } else if (etapa === 'DEPOSITADO') {
+                    mk('rend-btn-no', 'Anular', 'Anular solicitud', () => rendAnular(key));
+                } else if (etapa === 'CON SUSTENTO' || etapa === 'OBSERVADO') {
+                    mk('rend-btn-sus', 'Conforme', 'Confirmar sustento conforme y pasar a Atendido', () => rendAbrirSustento(key));
+                    if (etapa === 'CON SUSTENTO') mk('rend-btn-dep', 'Observar', 'Registrar observación del sustento', () => rendObservar(key));
+                    mk('rend-btn-no', 'Rechazado', 'Rechazar y regresar a Evidencia', () => rendAbrirRechazo(key));
+                } else if (etapa === 'SUSTENTADO') {
+                    mk('rend-btn-rev', 'Archivar', 'Archivar solicitud atendida', () => rendArchivar(key, false));
+                } else if (etapa === 'ARCHIVADO') {
+                    mk('rend-btn-rev', 'Desarchivar', 'Desarchivar y regresar a Atendido', () => rendArchivar(key, true));
+                } else if (etapa === 'ANULADO') {
+                    const badge = document.createElement('span'); badge.className = 'rend-btn-done'; badge.textContent = 'Anulado'; wrap.append(badge);
                 }
 
                 return wrap;
@@ -11157,9 +11079,9 @@ let _rendCambiandoVista = false;
 
             minWidth: 152,
 
-            maxWidth: 230,
 
-            frozen: true,
+
+            frozen: false,
 
             headerSort: false,
 
@@ -11280,9 +11202,9 @@ let _rendCambiandoVista = false;
 
             minWidth: 130,
 
-            maxWidth: 170,
 
-            resizable: false,
+
+            resizable: true,
 
             headerSort: false,
 
@@ -11413,6 +11335,28 @@ let _rendCambiandoVista = false;
 
 
         var container = document.createElement("div");
+        const manual = manualColsConfig.find(c => c.nombre === column.getField() && c.tipo === 'lista');
+        if (manual && ['supervisor', 'suport', 'zeno'].includes(USER_ROLE) && (!window.nucleusCanManageOptions || window.nucleusCanManageOptions(manual.nombre))) {
+            const manage = document.createElement('button');
+            manage.type = 'button'; manage.className = 'action-pill pill-blue';
+            manage.textContent = 'Administrar opciones';
+            manage.addEventListener('click', async () => {
+                const value = await nucleusOptionsDialog('Opciones de ' + manual.nombre, manual.opciones || []);
+                if (value === null) return;
+                try {
+                    const response = await fetch('/api/master/manual_columns/options', {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nombre:manual.nombre, opciones:value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean)})});
+                    const result = await nucleusLeerRespuestaJSON(response);
+                    if (!response.ok) throw new Error(result.error || 'No se pudieron guardar las opciones.');
+                    manual.opciones = result.opciones;
+                    window.dispatchEvent(new CustomEvent('nucleus:options-updated',{detail:{nombre:manual.nombre,opciones:result.opciones}}));
+                    const definition = column.getDefinition();
+                    await column.updateDefinition({editorParams:{...definition.editorParams, values:result.opciones}, headerFilter:listaHeaderFilter(result.opciones), headerFilterParams:{...definition.headerFilterParams, values:result.opciones}});
+                    document.body.click();
+                } catch(error) { nucleusAlert(error.message); }
+            });
+            container.appendChild(manage);
+        }
+
 
         container.style.padding = "15px";
 
@@ -12642,7 +12586,7 @@ let _rendCambiandoVista = false;
 
             const def = c.getDefinition();
 
-            if (!def.field || def.field === '_key' || (def.field === '_accion' && !IS_RENDICION) || def.field.startsWith('KPI_')) return null;
+            if (!def.field) return null;
 
             return { field: def.field, visible: c.isVisible() };
 
@@ -15551,7 +15495,8 @@ let _rendCambiandoVista = false;
 
         // 9. Supervisor responsable
 
-        mkTxt('SUPERVISOR RESPONSABLE', 'SUPERVISOR', 'Nombre del supervisor');
+        const supervisorConfig = (manualColsConfig || []).find(c => c.nombre === 'SUPERVISOR' && c.tipo === 'lista');
+        mkSel('SUPERVISOR RESPONSABLE', 'SUPERVISOR', supervisorConfig?.opciones || [], '— Seleccionar supervisor —');
 
 
 
@@ -15846,7 +15791,7 @@ let _rendCambiandoVista = false;
 
         inpCoti.type = 'text';
 
-        const _fullSug = 'HW-' + new Date().getFullYear() + '-' + _sugerirCorrelativoCotiReg();
+        const _fullSug = prefijoCotizacion(selClienteCoti.value) + _sugerirCorrelativoCotiReg();
 
         let _curCoti = _fullSug;
 
@@ -15854,7 +15799,8 @@ let _rendCambiandoVista = false;
 
         inpCoti.value = _curCoti;
 
-        inpCoti.placeholder = 'HW-2026-0000000';
+        inpCoti.placeholder = prefijoCotizacion(selClienteCoti.value) + '0000000';
+        selClienteCoti.addEventListener('change',()=>{if(!cotiEditMode){const digits=inpCoti.value.match(/(\d{7})$/)?.[1]||_sugerirCorrelativoCotiReg();inpCoti.value=prefijoCotizacion(selClienteCoti.value)+digits;}});
 
         inpCoti.title = 'Editable. Se asigna definitivo al generar.';
 
@@ -16580,7 +16526,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
             const k = String(r['_key'] != null ? r['_key'] : (r['N° COTIZACION'] || ''));
 
-            const m = k.match(/^HW-(\d{4})-(\d{7})$/);
+            const m = k.match(/^(?:HW|EN|CL|IN)-(\d{4})-(\d{7})$/);
 
             if (m && m[1] === yr) {
 
@@ -17436,13 +17382,13 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         // Formatear si solo ingresaron los dígitos
 
-        if (numero && !numero.startsWith('HW-')) {
+        if (numero && !/^(?:HW|EN|CL|IN)-\d{4}-\d{7}$/.test(numero)) {
 
             const digits = numero.replace(/\D/g, '');
 
             if (digits) {
 
-                numero = 'HW-' + new Date().getFullYear() + '-' + digits.padStart(7, '0');
+                numero = prefijoCotizacion(getVal('CLIENTE')) + digits.padStart(7, '0');
 
             }
 
@@ -17770,7 +17716,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
                 if (!digits) { alert('Ingrese el correlativo del N° de cotización.'); return; }
 
-                data['N° COTIZACION'] = 'HW-' + new Date().getFullYear() + '-' + digits.padStart(7, '0');
+                data['N° COTIZACION'] = prefijoCotizacion(data['CLIENTE']) + digits.padStart(7, '0');
 
                 key = data['N° COTIZACION'];
 
@@ -18753,6 +18699,9 @@ btnItem.onclick = () => cotRegAgregarFila();
         const btnX = document.getElementById('btn-evidencia-xlsx');
 
         if (btnX) btnX.style.display = 'none';
+
+        const downloadButton = document.getElementById('btn-evidencia-zip');
+        if (downloadButton) downloadButton.style.display = '';
 
         EVIDENCIA_TIPOS.forEach(t => renderEvidenciaGrupo(t));
 
@@ -20079,9 +20028,10 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...'; }
 
-        const pid = (typeof currentProjectId !== 'undefined' && currentProjectId) ? currentProjectId : 0;
+        const pid = _cotSustentoContext?.lista[_cotSustentoContext.index]?.proyecto_id || currentProjectId;
+        const cotKey = _cotSustentoContext?.key || '';
 
-        fetch('/api/evidencia/zip/' + pid + '/' + encodeURIComponent(woKey))
+        fetch('/api/evidencia/zip/' + pid + '/' + encodeURIComponent(woKey) + '?solo_fotos=1&cotizacion_key=' + encodeURIComponent(cotKey))
 
             .then(async r => {
 
@@ -22318,6 +22268,10 @@ btnItem.onclick = () => cotRegAgregarFila();
             woTecnicos = res.tecnicos || [];
 
             woMateriales = res.materiales || [];
+            document.querySelectorAll('#wo-material-list datalist').forEach(list => {
+                list.replaceChildren();
+                woMateriales.forEach(m => list.appendChild(new Option(m.descripcion, m.codigo ? m.codigo + ' | ' + m.descripcion : m.descripcion)));
+            });
 
 
 
@@ -22601,7 +22555,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         if (!Array.isArray(saved)) saved = [];
 
-        saved.forEach(m => agregarFilaMaterial(m.descripcion || m.codigo || '', m.unidad || m.und || 'UN', m.guia !== undefined && m.guia !== '' ? m.guia : (m.cantidad || ''), m.gastado || ''));
+        saved.forEach(m => agregarFilaMaterial(m.descripcion || m.codigo || '', m.unidad || m.und || 'UN', m.guia ?? '', m.gastado !== undefined && m.gastado !== '' ? m.gastado : (m.cantidad ?? ''), m));
 
         if (!saved.length) {
 
@@ -22613,7 +22567,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
 
 
-    function agregarFilaMaterial(descripcion, unidad, guia, gastado) {
+    function agregarFilaMaterial(descripcion, unidad, guia, gastado, original = {}) {
 
         const cont = document.getElementById('wo-material-list');
 
@@ -22628,6 +22582,7 @@ btnItem.onclick = () => cotRegAgregarFila();
         const row = document.createElement('div');
 
         row.className = 'wo-material-row';
+        row.dataset.materialOriginal = JSON.stringify(original);
 
         row.style.cssText = 'display: flex; align-items: center; gap: 8px; width: 100%; flex-wrap: nowrap; margin-bottom: 6px;';
 
@@ -22637,85 +22592,27 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         let descEl;
 
-        if (IS_PEXT) {
-
-            descEl = document.createElement('select');
-
-            descEl.className = 'wo-mat-desc';
-
-            descEl.style.cssText = 'flex: 1; min-width: 160px; height: 34px; border-radius: 6px; border: 1px solid var(--ios-hairline); background: var(--ios-card-bg); color: var(--ios-label); font-size: 13px; font-weight: 500; outline: none;';
-
-            const opt = document.createElement('option');
-
-            opt.value = '';
-
-            opt.textContent = '— Seleccionar material —';
-
-            descEl.appendChild(opt);
-
-            (woMateriales || []).forEach(m => {
-
-                const o = document.createElement('option');
-
-                o.value = m.codigo ? (m.codigo + ' | ' + m.descripcion) : m.descripcion;
-
-                o.textContent = (m.codigo ? '[' + m.codigo + '] ' : '') + m.descripcion;
-
-                descEl.appendChild(o);
-
-            });
-
-            if (descripcion) {
-
-                let found = Array.from(descEl.options).some(o => o.value === descripcion);
-
-                if (found) {
-
-                    descEl.value = descripcion;
-
-                } else {
-
-                    let partial = Array.from(descEl.options).find(o => o.value !== '' && (o.value.includes(descripcion) || descripcion.includes(o.value)));
-
-                    if (partial) {
-
-                        descEl.value = partial.value;
-
-                    } else {
-
-                        const unknownOpt = document.createElement('option');
-
-                        unknownOpt.value = descripcion;
-
-                        unknownOpt.textContent = descripcion + ' (No en catálogo)';
-
-                        descEl.appendChild(unknownOpt);
-
-                        descEl.value = descripcion;
-
-                    }
-
-                }
-
+        descEl = document.createElement('input');
+        descEl.type = 'text'; descEl.className = 'wo-mat-desc';
+        descEl.placeholder = 'Selecciona material o escribe uno provisional';
+        descEl.value = descripcion || ''; descEl.setAttribute('aria-label', 'Material');
+        descEl.style.cssText = 'flex:1;min-width:160px;height:34px;padding:0 10px;border:1px solid var(--ios-hairline);border-radius:6px;background:var(--ios-card-bg);color:var(--ios-label)';
+        const catalog = document.createElement('datalist');
+        catalog.id = 'wo-material-catalog-' + Math.random().toString(36).slice(2);
+        (woMateriales || []).forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.codigo ? m.codigo + ' | ' + m.descripcion : m.descripcion;
+            catalog.appendChild(option);
+        });
+        descEl.setAttribute('list', catalog.id); row.appendChild(catalog);
+        descEl.addEventListener('change', () => {
+            const material = (woMateriales || []).find(m => descEl.value === m.descripcion || descEl.value === m.codigo + ' | ' + m.descripcion);
+            row.dataset.selectedMaterialCode = material ? material.codigo || '' : '';
+            if (material && material.um) {
+                if (!Array.from(undSel.options).some(o => o.value === material.um)) undSel.add(new Option(material.um, material.um));
+                undSel.value = material.um;
             }
-
-        } else {
-
-            descEl = document.createElement('input');
-
-            descEl.type = 'text';
-
-            descEl.className = 'wo-mat-desc';
-
-            descEl.placeholder = 'Descripción del material...';
-
-            descEl.autocomplete = 'off';
-
-            descEl.style.cssText = 'flex: 1; min-width: 160px; height: 34px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--ios-hairline); background: var(--ios-card-bg); color: var(--ios-label); font-size: 13px; outline: none;';
-
-            descEl.value = descripcion || '';
-
-        }
+        });
 
         row.appendChild(descEl);
 
@@ -22725,11 +22622,11 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         const undSel = document.createElement('select');
 
-        undSel.className = 'wo-mat-und';
+        undSel.className = 'wo-mat-und'; undSel.setAttribute('aria-label', 'Unidad de medida');
 
         undSel.style.cssText = 'width: 85px; height: 34px; border-radius: 6px; border: 1px solid var(--ios-hairline); background: var(--ios-card-bg); color: var(--ios-label); font-size: 13px; font-weight: 500; cursor: pointer; flex-shrink: 0; outline: none;';
 
-        const unidades = ['UN', 'MT', 'KG', 'GLN', 'CJA', 'PZA', 'ST', 'ROL', 'PAQ', 'Global'];
+        const unidades = Array.from(new Set(['UN', 'MT', 'KG', 'GLN', 'CJA', 'PZA', 'ST', 'ROL', 'PAQ', 'Global', ...(woMateriales || []).map(m => m.um).filter(Boolean)]));
 
         unidades.forEach(u => {
 
@@ -22743,7 +22640,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         });
 
-        if (unidad) undSel.value = unidad;
+        if (unidad) { if (!unidades.includes(unidad)) undSel.add(new Option(unidad, unidad)); undSel.value = unidad; }
 
         row.appendChild(undSel);
 
@@ -22755,85 +22652,21 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         guiaInp.type = 'number';
 
-        guiaInp.className = 'wo-mat-guia';
+        guiaInp.className = 'wo-mat-guia wo-mat-gastado';
 
         guiaInp.min = '0';
 
         guiaInp.step = '0.01';
 
-        guiaInp.placeholder = 'Guía';
+        guiaInp.placeholder = 'Cantidad';
 
-        guiaInp.title = 'Total en la guía';
+        guiaInp.title = 'Cantidad utilizada'; guiaInp.setAttribute('aria-label', 'Cantidad utilizada');
 
-        guiaInp.style.cssText = 'width: 70px; height: 34px; text-align: center; border-radius: 6px; border: 1px solid var(--ios-hairline); background: var(--ios-card-bg); color: var(--ios-label); font-size: 13px; flex-shrink: 0; outline: none;';
+        guiaInp.style.cssText = 'width: 110px; height: 34px; text-align: center; border-radius: 6px; border: 1px solid var(--ios-hairline); background: var(--ios-card-bg); color: var(--ios-label); font-size: 13px; flex-shrink: 0; outline: none;';
 
-        guiaInp.value = (guia !== undefined && guia !== null && guia !== '') ? guia : '';
+        guiaInp.value = gastado !== undefined && gastado !== null && gastado !== '' ? gastado : '';
 
         row.appendChild(guiaInp);
-
-
-
-        // 4. Campo de Gastado
-
-        const gastadoInp = document.createElement('input');
-
-        gastadoInp.type = 'number';
-
-        gastadoInp.className = 'wo-mat-gastado';
-
-        gastadoInp.min = '0';
-
-        gastadoInp.step = '0.01';
-
-        gastadoInp.placeholder = 'Gastado';
-
-        gastadoInp.title = 'Material gastado/utilizado';
-
-        gastadoInp.style.cssText = 'width: 75px; height: 34px; text-align: center; border-radius: 6px; border: 1px solid var(--ios-hairline); background: var(--ios-card-bg); color: var(--ios-label); font-size: 13px; flex-shrink: 0; outline: none;';
-
-        gastadoInp.value = (gastado !== undefined && gastado !== null && gastado !== '') ? gastado : '';
-
-        row.appendChild(gastadoInp);
-
-
-
-        // 5. Campo de Devolución
-
-        const devInp = document.createElement('input');
-
-        devInp.type = 'number';
-
-        devInp.className = 'wo-mat-devolucion';
-
-        devInp.placeholder = 'Dev.';
-
-        devInp.title = 'Material a devolver (Guía - Gastado)';
-
-        devInp.readOnly = true;
-
-        devInp.style.cssText = 'width: 70px; height: 34px; text-align: center; border-radius: 6px; border: 1px solid var(--ios-hairline); background: rgba(0,0,0,0.05); color: var(--ios-label); font-size: 13px; flex-shrink: 0; outline: none; pointer-events: none;';
-
-        
-
-        function updateDevolucion() {
-
-            const g = parseFloat(guiaInp.value) || 0;
-
-            const s = parseFloat(gastadoInp.value) || 0;
-
-            const diff = g - s;
-
-            devInp.value = diff !== 0 ? diff : '';
-
-        }
-
-        guiaInp.addEventListener('input', updateDevolucion);
-
-        gastadoInp.addEventListener('input', updateDevolucion);
-
-        updateDevolucion();
-
-        row.appendChild(devInp);
 
 
 
@@ -23063,27 +22896,25 @@ btnItem.onclick = () => cotRegAgregarFila();
 
             const undSel = row.querySelector('.wo-mat-und');
 
-            const guiaInp = row.querySelector('.wo-mat-guia');
 
             const gastadoInp = row.querySelector('.wo-mat-gastado');
 
-            const devInp = row.querySelector('.wo-mat-devolucion');
 
             const desc = descEl ? descEl.value.trim() : '';
 
             if (!desc) return;
 
             items.push({
+                ...JSON.parse(row.dataset.materialOriginal || '{}'),
+                ...(row.dataset.selectedMaterialCode !== undefined ? {codigo:row.dataset.selectedMaterialCode} : {}),
 
                 descripcion: desc,
 
                 unidad: undSel ? undSel.value : 'UN',
 
-                guia: (guiaInp && guiaInp.value !== '') ? parseFloat(guiaInp.value) : '',
 
                 gastado: (gastadoInp && gastadoInp.value !== '') ? parseFloat(gastadoInp.value) : '',
 
-                devolucion: (devInp && devInp.value !== '') ? parseFloat(devInp.value) : '',
 
                 cantidad: (gastadoInp && gastadoInp.value !== '') ? parseFloat(gastadoInp.value) : ''
 
@@ -23111,9 +22942,12 @@ btnItem.onclick = () => cotRegAgregarFila();
 
 
 
-    function prefijoCotizacion() {
+    function prefijoCotizacion(cliente) {
 
-        return 'HW-' + new Date().getFullYear() + '-';
+        const selected = cliente || document.querySelector('#mar-fields [data-field="CLIENTE"]')?.value || {{ (session.get('current_proyecto_nombre') or '')|tojson }};
+        const name = String(selected || '').toUpperCase();
+        const prefix = name.includes('CLARO')?'CL':name.includes('INTEGRATEL')?'IN':'EN';
+        return prefix + '-' + new Date().getFullYear() + '-';
 
     }
 
@@ -23129,7 +22963,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         let prefix = v.slice(0, v.length - m[1].length);
 
-        if (!/^HW-\d{4}-$/.test(prefix)) prefix = prefijoCotizacion();
+        if (!/^(?:HW|EN|CL|IN)-\d{4}-$/.test(prefix)) prefix = prefijoCotizacion();
 
         return { prefix: prefix, digits: m[1] };
 
@@ -23163,7 +22997,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         const pfx = pref ? pref.textContent : '';
 
-        return (/^HW-\d{4}-$/.test(pfx) ? pfx : prefijoCotizacion()) + digits;
+        return (/^(?:HW|EN|CL|IN)-\d{4}-$/.test(pfx) ? pfx : prefijoCotizacion()) + digits;
 
     }
 
@@ -23285,7 +23119,7 @@ btnItem.onclick = () => cotRegAgregarFila();
 
         const sel = document.getElementById('wo-coti-select');
 
-        let max = 0, prefix = prefijoCotizacion();
+        let max = Math.max(0, Number(_sugerirCorrelativoCotiReg()) - 1), prefix = prefijoCotizacion();
 
         if (sel) {
 
@@ -23293,13 +23127,13 @@ btnItem.onclick = () => cotRegAgregarFila();
 
                 if (!o.value) return;
 
-                const m = String(o.textContent).match(/^(.+?)(\d+)/);
+                const m = String(o.textContent).match(/^(?:HW|EN|CL|IN)-\d{4}-(\d{7})(?:\b|$)/);
 
                 if (!m) return;
 
-                const n = parseInt(m[2], 10);
+                const n = parseInt(m[1], 10);
 
-                if (!isNaN(n) && n > max) { max = n; prefix = m[1]; }
+                if (!isNaN(n) && n > max) max = n;
 
             });
 
@@ -24311,6 +24145,11 @@ btnItem.onclick = () => cotRegAgregarFila();
 
     function guardarWoModal() {
         if (_cotSustentoContext && IS_COTIZACIONES) {cotGuardarSustentoSeleccionado(false).then(()=>nucleusAlert('Sustento del WO guardado.')).catch(error=>nucleusAlert(error.message));return;}
+
+
+        const invalidMaterial = Array.from(document.querySelectorAll('#wo-material-list .wo-mat-guia')).find(input => input.value && (!Number.isFinite(Number(input.value)) || Number(input.value) < 0));
+        if (invalidMaterial) { invalidMaterial.focus(); nucleusAlert('La cantidad utilizada debe ser un número mayor o igual a cero.'); return; }
+
 
         if (!woKey) return;
 
@@ -27404,7 +27243,7 @@ btnItem.onclick = () => cotRegAgregarFila();
   var _ADMIN_ROL="{{session.get('rol')}}";
   window._ADMIN_ES_ADMIN=['zeno','suport'].includes(_ADMIN_ROL);
   var _ESTADOS=['Pdt. Cotización','En Aprobación','Atendido','Cancelado','Cotizado','En proceso','Observado','Rechazado','Validado'];
-  var _BADGES={'Pdt. Cotización':'#8E8E93','En Aprobación':'#FF9500','Atendido':'#34C759','Cancelado':'#6B7280','Cotizado':'#5AC8FA','En proceso':'#AF52DE','Observado':'#FF6B00','Rechazado':'#FF3B30','Validado':'#30D158'};
+  var _BADGES={'Pdt. Cotización':'#8E8E93','En Aprobación':'#FF9500','Atendido':'#34C759','Cancelado':'#6B7280','Cotizado':'#5AC8FA','En proceso':'#173E76','Observado':'#FF6B00','Rechazado':'#FF3B30','Validado':'#30D158'};
   window.adminCotAbrir=function(){
     if(!window._ADMIN_ES_ADMIN)return;
     var m=document.getElementById('admin-cot-modal');
@@ -27767,6 +27606,32 @@ const _rendUserRoles = [String(USER_ROLE || '').trim().toLowerCase()];
 
 // Revierte el estado de una fila un paso atrás (solo zeno/admin)
 
+async function rendArchivar(key, desarchivar) {
+    const accion = desarchivar ? 'desarchivar' : 'archivar';
+    if (!(await nucleusConfirm(desarchivar ? 'La solicitud volverá a Atendido con sus datos y sustentos.' : 'La solicitud pasará a Archivar. Sus datos y sustentos se conservarán.', desarchivar ? 'Desarchivar' : 'Archivar'))) return;
+    const result = await rendAccion(key, accion, {});
+    if (result) rendTrasAccion(result, key);
+}
+function rendAnular(key) {
+    _rendModal = {accion:'anular',key};
+    document.getElementById('rend-motivo').value = '';
+    rendMostrarResumen(key);
+    rendAbrirModal('Anular solicitud', 'Indica el motivo. La solicitud quedará en Anulado conservando sus datos y comprobantes.', 'Confirmar anulación', 'rend-motivo');
+    document.getElementById('rend-lbl-motivo').textContent = 'Motivo de anulación';
+    document.getElementById('rend-lbl-motivo').style.display = 'block';
+    document.getElementById('rend-motivo').style.display = 'block';
+}
+
+function rendObservar(key) {
+    _rendModal = {accion:'observar', key};
+    document.getElementById('rend-motivo').value = '';
+    rendMostrarResumen(key);
+    rendAbrirModal('Observar sustento', 'Indica qué debe corregirse. La solicitud permanecerá en Observado hasta que su sustento esté conforme.', 'Guardar observación', 'rend-motivo');
+    document.getElementById('rend-lbl-motivo').textContent = 'Observación del sustento';
+    document.getElementById('rend-lbl-motivo').style.display = 'block';
+    document.getElementById('rend-motivo').style.display = 'block';
+}
+
 function rendRevertir(key) {
 
     if (!confirm('¿Seguro que deseas revertir esta solicitud al estado anterior?')) return;
@@ -27791,7 +27656,7 @@ function rendRevertir(key) {
 
 function _rendEsColumnaDeVista(f) {
 
-    if (f === '_accion') return true;
+    if (f === '_accion' || f === '_evidencia_btn') return true;
     return !!f && f !== '_key' && f !== '_evidencia_btn'
 
         && String(f).indexOf('_') !== 0
@@ -28086,21 +27951,23 @@ function _rendAplicarEstado(est) {
 
     try {
 
-        table.getColumns().forEach(c => {
-
-            const f = c.getField();
-
-            if (!f) return;
-
-            const vis = est.visibles[f] !== false;
-
-            if (vis && !c.isVisible()) c.show();
-
-            if (!vis && c.isVisible()) c.hide();
-
+        const columns = table.getColumns();
+        const byField = new Map(columns.map(c => [c.getField(), c]));
+        const desired = Array.from(new Set(est.orden || [])).filter(f => byField.has(f));
+        const included = new Set(desired);
+        const selection = columns.filter(c => !c.getField());
+        const rest = columns.filter(c => c.getField() && !included.has(c.getField()));
+        const ordered = [...selection, ...desired.map(f => byField.get(f)), ...rest];
+        if (ordered.every((c,i) => c === columns[i] && (!c.getField() || c.isVisible() === (est.visibles[c.getField()] !== false)))) return;
+        const definitions = ordered.map(c => {
+            const def = {...c.getDefinition()};
+            if (c.isVisible() && c.getWidth()) def.width = c.getWidth();
+            if (c.getField()) def.visible = est.visibles[c.getField()] !== false;
+            return def;
         });
-
-        _rendAplicarOrden(est.orden);
+        const sorters = table.getSorters().map(s => ({column:s.field, dir:s.dir}));
+        table.setColumns(definitions);
+        if (sorters.length) table.setSort(sorters);
 
     } finally {
 
@@ -28147,6 +28014,8 @@ function rendMostrarResumen(key) {
 function rendCambiarVista(vista) {
 
     if (!IS_RENDICION || !REND_VISTAS[vista]) return;
+    if (_rendVista === vista && _rendFiltroFn) return;
+    const switchStarted = performance.now();
 
     _rendInitEstados();
 
@@ -28166,15 +28035,9 @@ function rendCambiarVista(vista) {
 
 
 
-    nucleusBatchTable(table, () => {
+    nucleusBatchTable(table, () => rendAplicarFiltro());
     _rendAplicarEstado(_rendEstadoVistas[vista]);
-
-
-
-    rendAplicarFiltro();
-    });
-
-    rendActualizarContadores();
+    requestAnimationFrame(() => { document.getElementById('rend-tabs').dataset.renderMs = (performance.now() - switchStarted).toFixed(1); });
 
 }
 
@@ -28194,9 +28057,10 @@ function rendAplicarFiltro() {
 
     // Necesario al cambiar de pestaña para que no queden filtros residuales de otra vista.
 
-    table.clearFilter(true);
+            if (table.getHeaderFilters().length) table.clearHeaderFilter();
 
-    const fn = (rowData) => cfg.estados.includes(rendEstadoDe(rowData));
+    Object.keys(dateFilterRegistry).forEach(field => delete dateFilterRegistry[field]);
+    const fn = (rowData) => cfg.estados.includes(rendEstadoParaVista(rowData));
 
     _rendFiltroFn = fn;
 
@@ -28212,11 +28076,11 @@ function rendActualizarContadores() {
 
     if (!IS_RENDICION) return;
 
-    const c = { validacion: 0, depositos: 0, evidencia: 0, sustentos: 0, cerrado: 0, rechazados: 0 };
+    const c = { validacion: 0, depositos: 0, evidencia: 0, sustentos: 0, observado: 0, cerrado: 0, archivado: 0, rechazados: 0 };
 
     rawData.forEach(r => {
 
-        const e = rendEstadoDe(r);
+        const e = rendEstadoParaVista(r);
 
         if (e === 'PENDIENTE') c.validacion++;
 
@@ -28228,7 +28092,9 @@ function rendActualizarContadores() {
 
         else if (e === 'SUSTENTADO') c.cerrado++;
 
-        else if (e === 'RECHAZADO') c.rechazados++;
+        else if (e === 'ANULADO') c.rechazados++;
+        else if (e === 'OBSERVADO') c.observado++;
+        else if (e === 'ARCHIVADO') c.archivado++;
 
     });
 
@@ -28457,11 +28323,12 @@ function rendValidar(key) {
 
 function rendAbrirRechazo(key) {
 
+    document.getElementById('rend-lbl-motivo').textContent = 'Motivo del rechazo';
     _rendModal = { accion: 'rechazar', key: key };
 
     const _rk = (typeof rawData !== 'undefined' ? rawData : []).find(r => r._key === key) || {};
 
-    const _desdeRend = rendEstadoDe(_rk) === 'CON SUSTENTO';
+    const _desdeRend = ['CON SUSTENTO','OBSERVADO'].includes(rendEstadoDe(_rk));
 
     document.getElementById('rend-motivo').value = '';
 
@@ -28473,9 +28340,9 @@ function rendAbrirRechazo(key) {
 
         _desdeRend
 
-            ? 'Escribe el motivo del rechazo — la solicitud volverá a Evidencia para que el gestor la revise.'
+            ? 'La solicitud volverá a Evidencia con estado Rechazado. Indica el motivo.'
 
-            : 'Escribe el motivo del rechazo — quedará guardado en OBSERVACIONES.',
+            : 'La solicitud volverá a Validación con estado Rechazado. Indica el motivo.',
 
         'Confirmar Rechazo',
 
@@ -28561,11 +28428,11 @@ function rendAbrirSustento(key) {
 
     rendAbrirModal(
 
-        '★ Sustentar depósito',
+        'Confirmar atención del sustento',
 
-        'Escribe el comentario con el siguiente paso. Al confirmar cambia a estado SUSTENTADO.',
+        'Confirma que el sustento está conforme. La solicitud pasará a Atendido.',
 
-        'Confirmar Sustento',
+        'Pasar a Atendido',
 
         'rend-sus-form'
 
@@ -28719,11 +28586,11 @@ function rendConfirmarModal() {
 
         extra.observaciones = document.getElementById('rend-val-obs').value.trim();
 
-    } else if (accion === 'rechazar') {
+    } else if (accion === 'rechazar' || accion === 'observar' || accion === 'anular') {
 
         const motivo = document.getElementById('rend-motivo').value.trim();
 
-        if (!motivo) { alert('Escribe el motivo del rechazo.'); return; }
+        if (!motivo) { alert('Escribe el motivo u observación.'); return; }
 
         extra.observaciones = motivo;
 
@@ -28909,6 +28776,15 @@ if ((IS_RENDICION || IS_COTIZACIONES) && document.getElementById('btn-rend-aviso
 
 let _rendAvisosVistos = [];   // ids ya conocidos (para no repetir el toast)
 
+const _avisosModulo = IS_COTIZACIONES ? 'Cotizaciones' : 'Rendición';
+function _avisosFechaLocal(valor) {
+    if (!valor) return '';
+    const raw = String(valor).replace(' ', 'T');
+    const date = new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw) ? raw : raw+'Z');
+    return Number.isNaN(date.getTime()) ? String(valor) : new Intl.DateTimeFormat('es-PE', {
+        timeZone:'America/Lima', dateStyle:'short', timeStyle:'medium'
+    }).format(date);
+}
 let _rendAvisosPrimera = true;
 
 let _rendAvisosUltimos = [];   // última lista pintada (para volver a pintar tras cerrar uno)
@@ -28995,7 +28871,7 @@ function rendAvisosPintar(lista) {
 
                 <div style="font-size:12.5px; line-height:1.4;${a.leida ? '' : ' font-weight:700;'}">${escapeHtml(a.texto || '')}</div>
 
-                <div class="rend-aviso-hora">${escapeHtml(a.creada_en || '')}</div>
+                <div class="rend-aviso-hora">${escapeHtml(_avisosFechaLocal(a.creada_en))}</div>
 
             </div>
 
@@ -29059,7 +28935,7 @@ function rendAvisosToast(a) {
 
     el.innerHTML = '<div class="rend-aviso-toast-head">'
 
-        + '<span><i class="fa-solid fa-bell"></i> Aviso del flujo</span>'
+        + '<span><i class="fa-solid fa-bell"></i> ' + _avisosModulo + ' · cambio de estado</span>'
 
         + '<button type="button" class="rend-aviso-x" title="Cerrar">&times;</button>'
 
@@ -29067,7 +28943,7 @@ function rendAvisosToast(a) {
 
         + '<div class="rend-aviso-toast-txt">' + escapeHtml(a.texto || '') + '</div>'
 
-        + '<div class="rend-aviso-toast-hora">' + escapeHtml(a.creada_en || '') + '</div>';
+        + '<div class="rend-aviso-toast-hora">' + escapeHtml(_avisosFechaLocal(a.creada_en)) + '</div>';
 
     box.appendChild(el);
 
@@ -29113,11 +28989,11 @@ function rendAvisosNavegador(a) {
 
         if (Notification.permission !== 'granted') return;
 
-        const n = new Notification('🔔 Aviso del flujo de Rendición', {
+        const n = new Notification('🔔 ' + _avisosModulo + ' · cambio de estado', {
 
             body: (a.texto || '') + (a.creada_en ? '\n' + a.creada_en : ''),
 
-            tag: 'rend-aviso-' + (a.id || Date.now()),
+            tag: (IS_COTIZACIONES ? 'cot-aviso-' : 'rend-aviso-') + (a.id || Date.now()),
 
             requireInteraction: true
 
@@ -30392,7 +30268,7 @@ function cotConfirmarModal() {
 }
 document.addEventListener('DOMContentLoaded', () => {
 
-    setTimeout(() => rendCambiarVista('validacion'), 0);
+    setTimeout(() => { rendCambiarVista('validacion'); rendActualizarContadores(); }, 0);
 
     if (IS_COTIZACIONES) setTimeout(() => {
 

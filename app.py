@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Punto de entrada de Nucleus (factory + instancia a nivel de módulo).
+"""Punto de entrada de Modus (factory + instancia a nivel de módulo).
 
 `gunicorn app:app` (Procfile) y `python app.py` funcionan sin cambios
 gracias al `app = create_app()` a nivel de módulo.
@@ -21,7 +21,29 @@ import mimetypes
 from flask import Flask, request, jsonify, Response, current_app, session
 from werkzeug.exceptions import HTTPException
 
-from db import db
+try:
+    from db import db
+except ImportError as error:
+    # Solo el arranque directo en Windows puede usar el entorno local verificado.
+    # Las importaciones de servidor y pruebas mantienen sus errores originales.
+    import sys
+    from pathlib import Path
+    local_python = Path(__file__).resolve().parent / '.venv-local' / 'Scripts' / 'python.exe'
+    blocked = any(text in str(error).lower() for text in (
+        'control de aplicaciones', 'application control',
+    ))
+    if (__name__ == '__main__' and sys.platform == 'win32' and blocked
+            and local_python.is_file()
+            and Path(sys.executable).resolve() != local_python.resolve()):
+        import subprocess
+        print('Windows bloqueó una dependencia de este Python. Iniciando Modus con .venv-local…', flush=True)
+        try:
+            result = subprocess.call([str(local_python), str(Path(__file__).resolve()), *sys.argv[1:]],
+                                     cwd=str(Path(__file__).resolve().parent))
+        except KeyboardInterrupt:
+            result = 130
+        raise SystemExit(result)
+    raise
 from config import Config, get_default_config
 
 mimetypes.add_type('font/woff2', '.woff2')
@@ -149,8 +171,7 @@ def _register_blueprints(app):
     def recursos_contexto_template():
         from services.recursos_flm import contexto_recursos
         from services.branding import logo_url
-        return {'flm_resource_context': contexto_recursos(),
-                'sidebar_logo_url': logo_url() if session.get('user_id') else None}
+        return {'flm_resource_context': contexto_recursos(), 'sidebar_logo_url': logo_url() if session.get('user_id') else None}
 
 
 
@@ -211,16 +232,20 @@ def create_app(config_object=None):
     _register_blueprints(app)
     from services.legacy_columns import install,clean_existing_config
     install()
-    from services.operador import instalar,preparar_configuracion
+
+    from services.operador import instalar, preparar_configuracion
     instalar(app)
 
     # Migraciones de base de datos (idempotentes)
     from migrations import run_migrations
     database_url = os.environ.get('MODUS_DATABASE_URL', '')
     run_migrations(app, database_url)
-    with app.app_context():clean_existing_config()
-    if app.config.get('MODUS_SCOPE'):
-        with app.app_context():preparar_configuracion()
+    with app.app_context():
+        clean_existing_config()
+        from services.liquidacion_numero import numerar_historicos
+        numerar_historicos()
+        if app.config.get("MODUS_SCOPE"):
+            preparar_configuracion()
 
     return app
 
