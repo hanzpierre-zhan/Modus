@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Modus{% endblock %}</title>
     <!-- Favicon (SVG Inincrustado para que funcione siempre) -->
-    <link rel="icon" type="image/svg+xml" href="/static/img/modus.svg">
+    <link rel="icon" type="image/svg+xml" href="/static/img/brand-symbol.svg?v=1">
 
     <!-- Tabulator CSS for the Excel-like grid -->
     <link href="/static/vendor/css/tabulator.min.css?v=1" rel="stylesheet">
@@ -23,6 +23,7 @@
     <script src="/static/js/manual-options.js?v=2"></script>
     <script defer src="/static/js/button-semantics.js?v=1"></script>
     <script defer src="/static/js/form-options.js?v=1"></script>
+    <link rel="stylesheet" href="/static/css/brand-lockup.css?v=3">
 </head>
 <body data-options-role="{{ session.get('rol', '') }}" data-options-user="{{ session.get('user_id', '') }}">
     <script>
@@ -46,12 +47,7 @@
             <button id="sidebar-collapse" class="sidebar-collapse-btn" title="Contraer/Expandir menú" aria-label="Contraer o expandir menú">
                 <i class="fa-solid fa-angles-left"></i>
             </button>
-            <a href="/" class="sidebar-logo" style="display: flex; align-items: center; text-decoration: none; color: var(--ios-label, #1C1C1E);">
-                <svg width="30" height="30" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="color: var(--ios-accent);">
-                    <rect x="3" y="3" width="26" height="26" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 23V10l7 8 7-8v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span style="margin-left: 8px; font-family: 'SF Pro Display','Segoe UI',Roboto,sans-serif; font-size: 17px; font-weight: 600; color: var(--ios-label, #1C1C1E); letter-spacing: 1px;">MODUS</span>
-            </a>
+            {% set brand_location = 'sidebar' %}{% include '_brand_lockup.html' %}
 
             <nav class="sidebar-nav">
                 {% if (session.get('rol') or '').lower() not in ['gestor', 'contrata'] %}
